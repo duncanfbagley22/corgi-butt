@@ -1,0 +1,136 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import { Rnd } from 'react-rnd'
+
+interface RoomProps {
+  id: string
+  name: string
+  size?: string
+  leftPercent: number
+  topPercent: number
+  widthPercent: number
+  heightPercent: number
+  onUpdate: (id: string, left: number, top: number, width: number, height: number) => void
+  onDelete?: (id: string) => void
+  onClick?: (id: string, name: string) => void
+  gridSize?: number
+}
+
+export default function Room({
+  id,
+  name,
+  size,
+  leftPercent,
+  topPercent,
+  widthPercent,
+  heightPercent,
+  onUpdate,
+  onDelete,
+  onClick,
+  gridSize = 20,
+}: RoomProps) {
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const containerRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    const container = document.querySelector('.floorplan-container') as HTMLElement
+    if (container) {
+      containerRef.current = container
+      setContainerSize({ width: container.clientWidth, height: container.clientHeight })
+      
+      // Handle resize
+      const resizeObserver = new ResizeObserver(() => {
+        setContainerSize({ width: container.clientWidth, height: container.clientHeight })
+      })
+      resizeObserver.observe(container)
+      
+      return () => resizeObserver.disconnect()
+    }
+  }, [])
+
+  const pixelPosition = {
+    x: (leftPercent / 100) * containerSize.width,
+    y: (topPercent / 100) * containerSize.height,
+  }
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    // Only trigger double click if we're not in the middle of a drag operation
+    if (!isDragging && onClick && !e.defaultPrevented) {
+      onClick(id, name)
+    }
+  }
+
+  return (
+    <Rnd
+      bounds="parent"
+      size={{ width: `${widthPercent}%`, height: `${heightPercent}%` }}
+      position={pixelPosition}
+      enableResizing={{
+        top: true,
+        right: true,
+        bottom: true,
+        left: true,
+        topRight: true,
+        bottomRight: true,
+        bottomLeft: true,
+        topLeft: true,
+      }}
+      dragGrid={[gridSize, gridSize]}
+      resizeGrid={[gridSize, gridSize]}
+      onDragStart={() => {
+        setIsDragging(true)
+      }}
+      onDragStop={(e, d) => {
+        if (!containerRef.current) return
+
+        const newLeft = (d.x / containerRef.current.clientWidth) * 100
+        const newTop = (d.y / containerRef.current.clientHeight) * 100
+        onUpdate(id, newLeft, newTop, widthPercent, heightPercent)
+        
+        // Reset dragging state after a brief delay to prevent accidental double clicks
+        setTimeout(() => setIsDragging(false), 100)
+      }}
+      onResizeStart={() => {
+        setIsDragging(true)
+      }}
+      onResizeStop={(e, direction, ref, delta, pos) => {
+        if (!containerRef.current) return
+
+        const newWidth = (ref.offsetWidth / containerRef.current.clientWidth) * 100
+        const newHeight = (ref.offsetHeight / containerRef.current.clientHeight) * 100
+        const newLeft = (pos.x / containerRef.current.clientWidth) * 100
+        const newTop = (pos.y / containerRef.current.clientHeight) * 100
+
+        onUpdate(id, newLeft, newTop, newWidth, newHeight)
+        
+        // Reset dragging state after a brief delay
+        setTimeout(() => setIsDragging(false), 100)
+      }}
+    >
+      <div 
+        className="w-full h-full border border-gray-400 dark:border-zinc-600 bg-gray-200 dark:bg-zinc-800 rounded-md flex flex-col items-center justify-center cursor-move relative group hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors"
+        onDoubleClick={handleDoubleClick}
+      >
+        <div className="font-medium text-center">{name}</div>
+        <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Double-click to edit</div>
+        
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              if (window.confirm(`Delete room "${name}"?`)) {
+                onDelete(id)
+              }
+            }}
+            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 flex items-center justify-center"
+          >
+            ×
+          </button>
+        )}
+      </div>
+    </Rnd>
+  )
+}

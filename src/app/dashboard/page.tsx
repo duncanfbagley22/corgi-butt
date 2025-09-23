@@ -1,18 +1,20 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import GeometricBackground from "@/components/ui/geometric-background"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/hooks/useAuth"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
+  const { user, loading } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-    const { user, loading } = useAuth()
 
   if (!mounted || loading) {
     return (
@@ -33,15 +35,23 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <Card className="w-full max-w-md">
+    <div className="relative flex items-center justify-center h-screen">
+      <GeometricBackground />
+
+      <Card className="w-full max-w-md shadow-lg z-10">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Dashboard</CardTitle>
+          <CardTitle className="text-2xl text-center">Corgi Butt</CardTitle>
         </CardHeader>
-        <CardContent className="text-center space-y-2">
+        <CardContent className="text-center space-y-4">
           <p className="text-xl">
-            Welcome, {user.full_name || user.email} 👋
+            Welcome, {user.full_name || user.email}!
           </p>
+          <Button
+            className="w-full"
+            onClick={() => router.push("/floorplan")}
+          >
+            Go to Floorplan
+          </Button>
         </CardContent>
       </Card>
     </div>

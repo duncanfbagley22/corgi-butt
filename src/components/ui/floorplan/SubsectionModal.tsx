@@ -4,19 +4,23 @@ import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase/supabase"
 import type { Subsection, Item } from "@/types/floorplan"
 import ItemCard from "@/components/ui/floorplan/itemcard"
+import { CompletionCard } from "@/components/ui/floorplan/CompletionCard"
+import { ItemEditCard } from "@/components/ui/floorplan/ItemEditCard"
 import { useAuth } from "@/hooks/useAuth"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
-export default function SubsectionModal({
-  subsection,
-  onClose,
-  refresh,
-}: {
+interface SubsectionModalProps {
   subsection: Subsection
   onClose: () => void
   refresh: () => void
-}) {
+}
+
+export default function SubsectionModal({ subsection, onClose, refresh }: SubsectionModalProps) {
   const { user } = useAuth()
   const [items, setItems] = useState<Item[]>([])
+  const [showCompletion, setShowCompletion] = useState(false)
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchItems()
@@ -58,8 +62,8 @@ export default function SubsectionModal({
     fetchItems()
   }
 
-  const renameItem = async (id: string, name: string) => {
-    await supabase.from("items").update({ name }).eq("id", id)
+  const renameItem = async (id: string, updates: Partial<Item>) => {
+    await supabase.from("items").update(updates).eq("id", id)
     fetchItems()
   }
 
@@ -81,42 +85,110 @@ export default function SubsectionModal({
     refresh()
   }
 
+  if (!subsection) return null
+
+  const renderItems = () => {
+    if (items.length === 0) {
+      return (
+        <p className="text-gray-500 dark:text-gray-400 text-center col-span-2">
+          No items yet. Add one below.
+        </p>
+      )
+    }
+
+    if (editingItemId) {
+      return items.map((item) => (
+        <ItemEditCard
+          key={item.id}
+          item={item}
+          onCancel={() => setEditingItemId(null)}
+          onSave={(updates) => {
+            renameItem(item.id, updates)
+            setEditingItemId(null)
+          }}
+        />
+      ))
+    }
+
+    if (showCompletion) {
+      return items.map((item) => (
+        <CompletionCard key={item.id} item={item} />
+      ))
+    }
+
+    return items.map((item) => (
+      <ItemCard
+        key={item.id}
+        item={item}
+        onRename={(id, name) => renameItem(id, { name })}
+        onDelete={deleteItem}
+        onMarkCompleted={markCompleted}
+      />
+    ))
+  }
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-lg relative">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+      <Card className="w-full max-w-lg p-6 relative">
+        {/* Close X */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-black"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 dark:hover:text-white"
         >
           ✕
         </button>
 
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <span className="text-2xl">{subsection.icon || "📦"}</span>
-          {subsection.name}
-        </h2>
+        <CardHeader className="mb-4">
+          <CardTitle>{subsection.name}</CardTitle>
+        </CardHeader>
 
-        <div className="space-y-4">
-          {items.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onRename={renameItem}
-              onDelete={deleteItem}
-              onMarkCompleted={markCompleted}
-            />
-          ))}
-        </div>
+        <CardContent className="grid grid-cols-2 gap-4">
+          {editingItemId
+            ? items.map((item) => (
+                <ItemEditCard
+                  key={item.id}
+                  item={item}
+                  onCancel={() => setEditingItemId(null)}
+                  onSave={(updates) => {
+                    renameItem(item.id, updates)
+                    setEditingItemId(null)
+                  }}
+                />
+              ))
+            : showCompletion
+            ? items.map((item) => <CompletionCard key={item.id} item={item} />)
+            : items.length > 0
+            ? items.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  onRename={(id, name) => renameItem(id, { name })}
+                  onDelete={deleteItem}
+                  onMarkCompleted={markCompleted}
+                />
+              ))
+            : (
+                <p className="text-gray-500 dark:text-gray-400 text-center col-span-2">
+                  No items yet. Add one below.
+                </p>
+              )}
+        </CardContent>
 
-        <div className="mt-4">
-          <button
-            onClick={addItem}
-            className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
-          >
-            + Add Item
-          </button>
+        {/* Bottom Buttons */}
+        <div className="flex justify-between mt-4 gap-2">
+          <Button size="sm" onClick={() => setShowCompletion(!showCompletion)}>
+            {showCompletion ? "Hide Completion" : "Show Completion"}
+          </Button>
+          <Button size="sm" onClick={() => setEditingItemId(editingItemId ? null : "editing")}>
+            Edit Items
+          </Button>
+          {!showCompletion && (
+            <Button size="sm" onClick={addItem}>
+              + Add Item
+            </Button>
+          )}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

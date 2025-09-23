@@ -22,7 +22,7 @@ export default function Floorplan({
       {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
 
       <div
-        className="relative border border-gray-400 dark:border-zinc-600 rounded-lg bg-gray-50 dark:bg-zinc-900 floorplan-container"
+        className="relative border-2 border-gray-500 dark:border-zinc-500 rounded-lg bg-gray-50 dark:bg-zinc-900 floorplan-container"
         style={{
           width: `${width}px`,
           height: `${height}px`,

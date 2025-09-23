@@ -1,227 +1,98 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/supabase'
 import Floorplan from '@/components/ui/floorplan/floorplan'
-import Room from '@/components/ui/floorplan/room'
 import RoomDetail from '@/components/ui/floorplan/roomdetail'
-
-
-type RoomData = {
-  id: string
-  name: string
-  size?: string
-  left_percent: number
-  top_percent: number
-  width_percent: number
-  height_percent: number
-}
+import GeometricBackground from '@/components/ui/geometric-background'
+import AddRoomModal from '@/components/ui/floorplan/addroommodal'
+import RoomGrid from '@/components/ui/floorplan/roomgrid'
+import SubsectionCard from '@/components/ui/floorplan/SubsectionCard'
+import { Button } from '@/components/ui/button'
+import { RoomData } from '@/types/floorplan'
+import { Plus, Layout, List } from 'lucide-react'
 
 export default function FloorplanPage() {
   const [rooms, setRooms] = useState<RoomData[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
-  const [selectedRoom, setSelectedRoom] = useState<{ 
-    id: string; 
-    name: string;
-  } | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [selectedRoom, setSelectedRoom] = useState<{ id: string; name: string } | null>(null)
+  const [listView, setListView] = useState(false)
 
-  // Fetch rooms from Supabase
   useEffect(() => {
     const fetchRooms = async () => {
       const { data, error } = await supabase.from('rooms').select('*')
       if (error) console.error('Error fetching rooms:', error)
       else setRooms(data)
     }
-
     fetchRooms()
   }, [])
 
-  // Handle adding a new room
-  const handleAddRoom = async (name: string) => {
-    const newRoom = {
-      name,
-      left_percent: 10, // default position
-      top_percent: 10,
-      width_percent: 20, // default size
-      height_percent: 15,
-    }
-
-    // Add to database
-    const { data, error } = await supabase
-      .from('rooms')
-      .insert([newRoom])
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error adding room:', error)
-      return
-    }
-
-    // Add to local state
-    if (data) {
-      setRooms((prev) => [...prev, data])
-    }
-
+  const handleAddRoom = async (name: string, icon: string) => {
+    const newRoom = { name, icon, left_percent: 10, top_percent: 10, width_percent: 20, height_percent: 15 }
+    const { data, error } = await supabase.from('rooms').insert([newRoom]).select().single()
+    if (error) console.error('Error adding room:', error)
+    if (data) setRooms((prev) => [...prev, data])
     setShowAddForm(false)
   }
 
-  // Handle room click for navigation
-  const handleRoomClick = (roomId: string, roomName: string) => {
-    const room = rooms.find(r => r.id === roomId)
-    if (room) {
-      console.log('Room found:', room) // Debug log
-      setSelectedRoom({ 
-        id: roomId, 
-        name: roomName
-      })
-    } else {
-      console.error('Room not found:', roomId) // Debug log
-      // Fallback - still open the room but with default dimensions
-      setSelectedRoom({ 
-        id: roomId, 
-        name: roomName
-      })
-    }
-  }
+  const handleRoomClick = (roomId: string, roomName: string) => setSelectedRoom({ id: roomId, name: roomName })
+  const handleBackToFloorplan = () => setSelectedRoom(null)
 
-  // Handle going back to main floorplan
-  const handleBackToFloorplan = () => {
-    setSelectedRoom(null)
-  }
   const handleDeleteRoom = async (id: string) => {
-    // Remove from database
-    const { error } = await supabase
-      .from('rooms')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error deleting room:', error)
-      return
-    }
-
-    // Remove from local state
-    setRooms((prev) => prev.filter(room => room.id !== id))
-  }
-  const handleUpdate = async (
-    id: string,
-    left: number,
-    top: number,
-    width: number,
-    height: number
-  ) => {
-    // Update local state
-    setRooms((prev) =>
-      prev.map((room) =>
-        room.id === id
-          ? {
-              ...room,
-              left_percent: left,
-              top_percent: top,
-              width_percent: width,
-              height_percent: height,
-            }
-          : room
-      )
-    )
-
-    // Update database
-    await supabase
-      .from('rooms')
-      .update({
-        left_percent: left,
-        top_percent: top,
-        width_percent: width,
-        height_percent: height,
-      })
-      .eq('id', id)
+    const { error } = await supabase.from('rooms').delete().eq('id', id)
+    if (error) console.error('Error deleting room:', error)
+    else setRooms((prev) => prev.filter(r => r.id !== id))
   }
 
-if (selectedRoom) {
-  console.log('Rendering RoomDetailPage for:', selectedRoom)
-  return (
-    <RoomDetail 
-      roomId={selectedRoom.id} 
-      roomName={selectedRoom.name} 
-      onBack={handleBackToFloorplan} 
-    />
-  )
-}
+  const handleUpdate = async (id: string, left: number, top: number, width: number, height: number) => {
+    setRooms(prev => prev.map(r => r.id === id ? { ...r, left_percent: left, top_percent: top, width_percent: width, height_percent: height } : r))
+    await supabase.from('rooms').update({ left_percent: left, top_percent: top, width_percent: width, height_percent: height }).eq('id', id)
+  }
+
+  if (selectedRoom) {
+    return <RoomDetail roomId={selectedRoom.id} roomName={selectedRoom.name} onBack={handleBackToFloorplan} />
+  }
 
   return (
     <div>
-      <div className="flex justify-center mb-4">
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-        >
-          Add Room
-        </button>
-      </div>
+      <GeometricBackground />
 
-      {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold mb-4">Add New Room</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                const formData = new FormData(e.currentTarget)
-                const name = formData.get('name') as string
-                if (name.trim()) {
-                  handleAddRoom(name.trim())
-                }
-              }}
-            >
-              <input
-                type="text"
-                name="name"
-                placeholder="Room name"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded mb-4 dark:bg-zinc-700"
-                autoFocus
-                required
-              />
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  Add Room
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAddForm(false)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddRoomModal isOpen={showAddForm} onClose={() => setShowAddForm(false)} onAdd={handleAddRoom} />
 
-      <Floorplan gridSize={20}>
-        <div ref={containerRef} className="absolute inset-0">
+      {/* Toggle between list and floorplan */}
+      {listView ? (
+        <div className="max-w-md mx-auto grid grid-cols-2 gap-4 my-4">
           {rooms.map((room) => (
-            <Room
+            <SubsectionCard
               key={room.id}
-              id={room.id}
-              name={room.name}
-              leftPercent={room.left_percent}
-              topPercent={room.top_percent}
-              widthPercent={room.width_percent}
-              heightPercent={room.height_percent}
-              onUpdate={handleUpdate}
-              onDelete={handleDeleteRoom}
-              onClick={handleRoomClick}
-              gridSize={20} // match Floorplan grid
+              subsection={{ id: room.id, name: room.name, icon: room.icon, items: [] }}
+              onClick={() => handleRoomClick(room.id, room.name)}
+              onDelete={() => handleDeleteRoom(room.id)}
+              onRename={(newName) => {
+                setRooms(prev => prev.map(r => r.id === room.id ? { ...r, name: newName } : r))
+                supabase.from('rooms').update({ name: newName }).eq('id', room.id)
+              }}
             />
           ))}
         </div>
-      </Floorplan>
+      ) : (
+        <Floorplan gridSize={20}>
+          <RoomGrid rooms={rooms} onUpdate={handleUpdate} onDelete={handleDeleteRoom} onClick={handleRoomClick} gridSize={20} />
+        </Floorplan>
+      )}
+
+      {/* Buttons */}
+      <div className="flex justify-center mb-4 gap-2">
+        <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2">
+          <Plus size={16} />
+          Add Room
+        </Button>
+
+        <Button onClick={() => setListView(!listView)} className="flex items-center gap-2">
+          {listView ? <Layout size={16} /> : <List size={16} />}
+          {listView ? 'Floorplan View' : 'List View'}
+        </Button>
+      </div>
     </div>
   )
 }

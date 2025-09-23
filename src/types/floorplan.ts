@@ -2,6 +2,8 @@
 export interface Item {
   id: string
   name: string
+  icon?: string
+  description?: string
   frequency: string
   last_completed: string | null
   last_completed_by?: string
@@ -17,4 +19,15 @@ export interface Subsection {
   name: string
   icon: string
   items: Item[]
+}
+
+export type RoomData = {
+  id: string
+  name: string
+  icon?: string
+  size?: string
+  left_percent: number
+  top_percent: number
+  width_percent: number
+  height_percent: number
 }

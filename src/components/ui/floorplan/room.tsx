@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Rnd } from 'react-rnd'
+import { LucideIcon, X} from 'lucide-react' // import for typing
+
 
 interface RoomProps {
   id: string
   name: string
+  icon?: LucideIcon
   size?: string
   leftPercent: number
   topPercent: number
@@ -20,6 +23,7 @@ interface RoomProps {
 export default function Room({
   id,
   name,
+  icon: IconComponent,
   size,
   leftPercent,
   topPercent,
@@ -40,7 +44,6 @@ export default function Room({
       containerRef.current = container
       setContainerSize({ width: container.clientWidth, height: container.clientHeight })
       
-      // Handle resize
       const resizeObserver = new ResizeObserver(() => {
         setContainerSize({ width: container.clientWidth, height: container.clientHeight })
       })
@@ -56,7 +59,6 @@ export default function Room({
   }
 
   const handleDoubleClick = (e: React.MouseEvent) => {
-    // Only trigger double click if we're not in the middle of a drag operation
     if (!isDragging && onClick && !e.defaultPrevented) {
       onClick(id, name)
     }
@@ -79,42 +81,41 @@ export default function Room({
       }}
       dragGrid={[gridSize, gridSize]}
       resizeGrid={[gridSize, gridSize]}
-      onDragStart={() => {
-        setIsDragging(true)
-      }}
+      onDragStart={() => setIsDragging(true)}
       onDragStop={(e, d) => {
         if (!containerRef.current) return
-
         const newLeft = (d.x / containerRef.current.clientWidth) * 100
         const newTop = (d.y / containerRef.current.clientHeight) * 100
         onUpdate(id, newLeft, newTop, widthPercent, heightPercent)
-        
-        // Reset dragging state after a brief delay to prevent accidental double clicks
         setTimeout(() => setIsDragging(false), 100)
       }}
-      onResizeStart={() => {
-        setIsDragging(true)
-      }}
+      onResizeStart={() => setIsDragging(true)}
       onResizeStop={(e, direction, ref, delta, pos) => {
         if (!containerRef.current) return
-
         const newWidth = (ref.offsetWidth / containerRef.current.clientWidth) * 100
         const newHeight = (ref.offsetHeight / containerRef.current.clientHeight) * 100
         const newLeft = (pos.x / containerRef.current.clientWidth) * 100
         const newTop = (pos.y / containerRef.current.clientHeight) * 100
-
         onUpdate(id, newLeft, newTop, newWidth, newHeight)
-        
-        // Reset dragging state after a brief delay
         setTimeout(() => setIsDragging(false), 100)
       }}
     >
-      <div 
-        className="w-full h-full border border-gray-400 dark:border-zinc-600 bg-gray-200 dark:bg-zinc-800 rounded-md flex flex-col items-center justify-center cursor-move relative group hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors"
-        onDoubleClick={handleDoubleClick}
-      >
+        <div
+          className="w-full h-full border border-gray-400 dark:border-zinc-600 
+                    bg-gray-200 dark:bg-zinc-800 rounded-md flex flex-col 
+                    items-center justify-center cursor-move relative group 
+                    hover:bg-gray-300 dark:hover:bg-zinc-700 
+                    transform hover:scale-105 transition-transform"
+          onDoubleClick={handleDoubleClick}
+        >
+        {/* Icon wrapper */}
+        {IconComponent && (
+          <div className="mb-1 text-gray-800 dark:text-gray-200">
+            <IconComponent size={24} />
+          </div>
+        )}
+
         <div className="font-medium text-center">{name}</div>
-        <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Double-click to edit</div>
         
         {onDelete && (
           <button
@@ -125,9 +126,11 @@ export default function Room({
                 onDelete(id)
               }
             }}
-            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 flex items-center justify-center"
-          >
-            ×
+className="absolute top-1 right-1 w-5 h-5 bg-red-300 text-white rounded-full 
+               opacity-0 group-hover:opacity-70 hover:opacity-100 transition-opacity duration-300 
+               hover:bg-red-600 flex items-center justify-center cursor-pointer"         
+                      >
+            <X size={12} className="pointer-events-none" />
           </button>
         )}
       </div>

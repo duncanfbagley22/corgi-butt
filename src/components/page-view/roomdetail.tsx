@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import * as LucideIcons from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
-import SubsectionCard from '@/components/ui/floorplan/SubsectionCard'
-import SubsectionModal from '@/components/ui/floorplan/SubsectionModal'
-import AddSubsectionModal from '@/components/ui/floorplan/addsubsectionmodal'
+import SubsectionCard from '@/components/ui/cards/SubsectionCard'
+import SubsectionModal from '@/components/modals/SubsectionModal'
+import AddSubsectionModal from '@/components/modals/addsubsectionmodal'
 import type { Subsection } from '@/types/floorplan'
 import { Button } from '@/components/ui/button'
 import GeometricBackground from '@/components/ui/geometric-background'
@@ -83,64 +83,63 @@ export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps
   return (
     <div className="p-6">
       <GeometricBackground />
-      {/* Back Button + Room Title */}
-      <div className="mb-6 flex items-center gap-4">
-  <Button
-    onClick={() => window.location.reload()}
-  >
-    ← Back
-  </Button>
+      <div className="max-w-5xl mx-auto">
+        {/* Back Button + Room Title */}
+        <div className="mb-6 flex items-center gap-4">
+          <Button onClick={onBack}>← Back</Button>
 
-    {editingName ? (
-      <input
-        className="border px-3 py-2 rounded-lg dark:bg-zinc-800 dark:text-white 
-                   focus:outline-none focus:ring-2 focus:ring-purple-500 text-2xl font-bold"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        onBlur={() => setEditingName(false)}
-        autoFocus
-      />
-    ) : (
-      <h1
-        className="text-2xl font-bold leading-tight cursor-pointer"
-        onClick={() => setEditingName(true)}
-      >
-        {name}
-      </h1>
-    )}
-  <div className="ml-10 inline-block bg-white dark:bg-zinc-800 px-3 py-1 rounded-lg shadow-sm">
-    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-      {new Date().toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })}
-    </p>
-  </div>
-      </div>
-
-      {/* Add Subsection Button */}
-      <Button onClick={() => setShowAddModal(true)} className="mb-4">
-        + Add Subsection
-      </Button>
-
-      {/* Subsection Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {subsections.map((sub) => {
-          const IconComponent = sub.icon
-            ? (LucideIcons[sub.icon as keyof typeof LucideIcons] as any)
-            : null
-
-          return (
-            <SubsectionCard
-              key={sub.id}
-              subsection={sub}
-              onClick={() => setSelectedSubsection(sub)}
-              onDelete={() => deleteSubsection(sub.id)}
-              onRename={(newName) => renameSubsection(sub.id, newName)}
+          {editingName ? (
+            <input
+              className="border px-3 py-2 rounded-lg dark:bg-zinc-800 dark:text-white 
+                         focus:outline-none focus:ring-2 focus:ring-purple-500 text-2xl font-bold"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => setEditingName(false)}
+              autoFocus
             />
-          )
-        })}
+          ) : (
+            <h1
+              className="text-2xl font-bold leading-tight cursor-pointer"
+              onClick={() => setEditingName(true)}
+            >
+              {name}
+            </h1>
+          )}
+
+          <div className="ml-10 inline-block bg-white dark:bg-zinc-800 px-3 py-1 rounded-lg shadow-sm">
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {new Date().toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+          </div>
+        </div>
+
+        {/* Add Subsection Button */}
+        <Button onClick={() => setShowAddModal(true)} className="mb-4">
+          + Add Subsection
+        </Button>
+
+        {/* Subsection Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {subsections.map((sub) => {
+            const IconComponent = sub.icon
+              ? (LucideIcons[sub.icon as keyof typeof LucideIcons] as any)
+              : null
+
+            return (
+              <SubsectionCard
+                key={sub.id}
+                subsection={sub}
+                onClick={() => setSelectedSubsection(sub)}
+                onDelete={() => deleteSubsection(sub.id)}
+                onRename={(newName) => renameSubsection(sub.id, newName)}
+              />
+            )
+          })}
+        </div>
       </div>
 
       {/* Add Subsection Modal */}

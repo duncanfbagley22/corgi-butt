@@ -41,7 +41,8 @@ export default function SubsectionCard({
     <div
       className="group relative p-4 border rounded-lg shadow bg-white dark:bg-zinc-800 
                  flex flex-col items-center justify-center cursor-pointer 
-                 hover:scale-105 transform transition-transform duration-200"
+                 hover:scale-105 transform transition-transform duration-200
+                 aspect-square w-52"
       onClick={onClick}
     >
       {/* Icon */}

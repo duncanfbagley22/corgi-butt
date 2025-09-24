@@ -24,6 +24,7 @@ const ICON_OPTIONS_RAW = [
   { name: 'Refrigerator', component: 'Refrigerator' },
   { name: 'Car', component: 'Car' },
   { name: 'Footprints', component: 'Footprints' },
+  { name: 'Shirt', component: 'Shirt' }
 ] as const
 
 type IconOption = {

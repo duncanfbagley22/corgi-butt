@@ -3,12 +3,17 @@
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase/supabase"
 import type { Subsection, Item } from "@/types/floorplan"
-import ItemCard from "@/components/ui/floorplan/itemcard"
-import { CompletionCard } from "@/components/ui/floorplan/CompletionCard"
-import { ItemEditCard } from "@/components/ui/floorplan/ItemEditCard"
+import ItemCard from "@/components/ui/cards/itemcard"
+import { CompletionCard } from "@/components/ui/cards/CompletionCard"
+import { ItemEditCard } from "@/components/ui/cards/ItemEditCard"
 import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import {
+  X,
+  CheckSquare,
+  SquarePen,
+  Plus,
+} from "lucide-react"
 
 interface SubsectionModalProps {
   subsection: Subsection
@@ -16,7 +21,11 @@ interface SubsectionModalProps {
   refresh: () => void
 }
 
-export default function SubsectionModal({ subsection, onClose, refresh }: SubsectionModalProps) {
+export default function SubsectionModal({
+  subsection,
+  onClose,
+  refresh,
+}: SubsectionModalProps) {
   const { user } = useAuth()
   const [items, setItems] = useState<Item[]>([])
   const [showCompletion, setShowCompletion] = useState(false)
@@ -29,10 +38,12 @@ export default function SubsectionModal({ subsection, onClose, refresh }: Subsec
   const fetchItems = async () => {
     const { data, error } = await supabase
       .from("items")
-      .select(`
+      .select(
+        `
         *,
         last_completed_by_user:users(id, display_name, full_name)
-      `)
+      `
+      )
       .eq("subsection_id", subsection.id)
 
     if (error) console.error("Error fetching items:", error)
@@ -87,56 +98,42 @@ export default function SubsectionModal({ subsection, onClose, refresh }: Subsec
 
   if (!subsection) return null
 
-  const renderItems = () => {
-    if (items.length === 0) {
-      return (
-        <p className="text-gray-500 dark:text-gray-400 text-center col-span-2">
-          No items yet. Add one below.
-        </p>
-      )
-    }
-
-    if (editingItemId) {
-      return items.map((item) => (
-        <ItemEditCard
-          key={item.id}
-          item={item}
-          onCancel={() => setEditingItemId(null)}
-          onSave={(updates) => {
-            renameItem(item.id, updates)
-            setEditingItemId(null)
-          }}
-        />
-      ))
-    }
-
-    if (showCompletion) {
-      return items.map((item) => (
-        <CompletionCard key={item.id} item={item} />
-      ))
-    }
-
-    return items.map((item) => (
-      <ItemCard
-        key={item.id}
-        item={item}
-        onRename={(id, name) => renameItem(id, { name })}
-        onDelete={deleteItem}
-        onMarkCompleted={markCompleted}
-      />
-    ))
-  }
-
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
       <Card className="w-full max-w-lg p-6 relative">
-        {/* Close X */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 dark:hover:text-white"
-        >
-          ✕
-        </button>
+        {/* Action Icons */}
+        <div className="absolute top-3 right-3 flex gap-3 text-gray-500 dark:text-gray-300">
+          <span title={showCompletion ? "Hide completion" : "Show completion"}>
+            <CheckSquare
+              size={20}
+              className="hover:text-purple-500 cursor-pointer transition"
+              onClick={() => setShowCompletion(!showCompletion)}
+            />
+          </span>
+          <span title="Edit items">
+            <SquarePen
+              size={20}
+              className="hover:text-purple-500 cursor-pointer transition"
+              onClick={() =>
+                setEditingItemId(editingItemId ? null : "editing")
+              }
+            />
+          </span>
+          <span title="Add item">
+            <Plus
+              size={20}
+              className="hover:text-purple-500 cursor-pointer transition"
+              onClick={addItem}
+            />
+          </span>
+          <span title="Close">
+            <X
+              size={20}
+              className="hover:text-red-500 cursor-pointer transition"
+              onClick={onClose}
+            />
+          </span>
+        </div>
 
         <CardHeader className="mb-4">
           <CardTitle>{subsection.name}</CardTitle>
@@ -173,21 +170,6 @@ export default function SubsectionModal({ subsection, onClose, refresh }: Subsec
                 </p>
               )}
         </CardContent>
-
-        {/* Bottom Buttons */}
-        <div className="flex justify-between mt-4 gap-2">
-          <Button size="sm" onClick={() => setShowCompletion(!showCompletion)}>
-            {showCompletion ? "Hide Completion" : "Show Completion"}
-          </Button>
-          <Button size="sm" onClick={() => setEditingItemId(editingItemId ? null : "editing")}>
-            Edit Items
-          </Button>
-          {!showCompletion && (
-            <Button size="sm" onClick={addItem}>
-              + Add Item
-            </Button>
-          )}
-        </div>
       </Card>
     </div>
   )

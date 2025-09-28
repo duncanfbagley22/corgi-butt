@@ -18,13 +18,13 @@ interface RoomProps {
   onDelete?: (id: string) => void
   onClick?: (id: string, name: string) => void
   gridSize?: number
+  editMode: boolean
 }
 
 export default function Room({
   id,
   name,
   icon: IconComponent,
-  size,
   leftPercent,
   topPercent,
   widthPercent,
@@ -33,6 +33,7 @@ export default function Room({
   onDelete,
   onClick,
   gridSize = 20,
+  editMode,
 }: RoomProps) {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const [isDragging, setIsDragging] = useState(false)
@@ -58,8 +59,9 @@ export default function Room({
     y: (topPercent / 100) * containerSize.height,
   }
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    if (!isDragging && onClick && !e.defaultPrevented) {
+  const handleClick = (e: React.MouseEvent) => {
+    // In edit mode, prevent room navigation on click
+    if (!editMode && !isDragging && onClick && !e.defaultPrevented) {
       onClick(id, name)
     }
   }
@@ -69,7 +71,7 @@ export default function Room({
       bounds="parent"
       size={{ width: `${widthPercent}%`, height: `${heightPercent}%` }}
       position={pixelPosition}
-      enableResizing={{
+      enableResizing={editMode ? {
         top: true,
         right: true,
         bottom: true,
@@ -78,9 +80,10 @@ export default function Room({
         bottomRight: true,
         bottomLeft: true,
         topLeft: true,
-      }}
-      dragGrid={[gridSize, gridSize]}
-      resizeGrid={[gridSize, gridSize]}
+      } : false}
+      disableDragging={!editMode}
+      dragGrid={editMode ? [gridSize, gridSize] : undefined}
+      resizeGrid={editMode ? [gridSize, gridSize] : undefined}
       onDragStart={() => setIsDragging(true)}
       onDragStop={(e, d) => {
         if (!containerRef.current) return
@@ -101,12 +104,13 @@ export default function Room({
       }}
     >
         <div
-          className="w-full h-full border border-gray-400 dark:border-zinc-600 
+          className={`w-full h-full border border-gray-400 dark:border-zinc-600 
                     bg-gray-200 dark:bg-zinc-800 rounded-md flex flex-col 
-                    items-center justify-center cursor-move relative group 
+                    items-center justify-center relative group 
                     hover:bg-gray-300 dark:hover:bg-zinc-700 
-                    transform hover:scale-105 transition-transform"
-          onDoubleClick={handleDoubleClick}
+                    transform hover:scale-105 transition-transform
+                    ${editMode ? 'cursor-move' : 'cursor-pointer'}`}
+          onClick={handleClick}
         >
         {/* Icon wrapper */}
         {IconComponent && (
@@ -117,7 +121,8 @@ export default function Room({
 
         <div className="font-medium text-center">{name}</div>
         
-        {onDelete && (
+        {/* Delete button - only show in edit mode */}
+        {editMode && onDelete && (
           <button
             onClick={(e) => {
               e.stopPropagation()
@@ -126,10 +131,10 @@ export default function Room({
                 onDelete(id)
               }
             }}
-className="absolute top-1 right-1 w-5 h-5 bg-red-300 text-white rounded-full 
-               opacity-0 group-hover:opacity-70 hover:opacity-100 transition-opacity duration-300 
-               hover:bg-red-600 flex items-center justify-center cursor-pointer"         
-                      >
+            className="absolute top-1 right-1 w-5 h-5 bg-red-300 text-white rounded-full 
+                       opacity-0 group-hover:opacity-70 hover:opacity-100 transition-opacity duration-300 
+                       hover:bg-red-600 flex items-center justify-center cursor-pointer"         
+          >
             <X size={12} className="pointer-events-none" />
           </button>
         )}

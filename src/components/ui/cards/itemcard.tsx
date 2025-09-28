@@ -1,34 +1,74 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import * as LucideIcons from 'lucide-react'
 import { getItemStatus } from '@/utils/itemstatus'
 import type { Item } from '@/types/floorplan'
+import { X } from 'lucide-react'
 
 interface ItemCardProps {
   item: Item
   onRename: (id: string, newName: string) => void
   onDelete: (id: string) => void
-  onMarkCompleted: (id: string) => void
+  onItemClick: (item: Item) => void
+  onMarkIncomplete?: (id: string) => void
+  editMode: boolean
 }
 
 export default function ItemCard({
   item,
   onRename,
   onDelete,
-  onMarkCompleted,
+  onItemClick,
+  onMarkIncomplete,
+  editMode,
 }: ItemCardProps) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(item.name)
-  const [showTooltip, setShowTooltip] = useState(false)
-  const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number }>({ left: 0, top: 0 })
-  const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [isLongPressing, setIsLongPressing] = useState(false)
 
-  const status = getItemStatus(item.last_completed, item.frequency)
+  useEffect(() => {
+    setName(item.name)
+  }, [item.name])
 
   const saveName = () => {
     onRename(item.id, name)
     setEditing(false)
+  }
+
+  const handleClick = () => {
+    if (editing || isLongPressing) return // Don't trigger if we're editing the name or long pressing
+    onItemClick(item)
+  }
+
+  const handleMouseDown = () => {
+    if (!item.last_completed || editMode || editing) return
+    
+    setIsLongPressing(false)
+    longPressTimerRef.current = setTimeout(() => {
+      setIsLongPressing(true)
+      console.log('big click')
+      if (onMarkIncomplete) {
+        onMarkIncomplete(item.id)
+      }
+    }, 800) 
+    // 800ms for long press
+  }
+
+  const handleMouseUp = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+    setTimeout(() => setIsLongPressing(false), 100) // Small delay to prevent click after long press
+  }
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (window.confirm(`Delete "${item.name}"?`)) {
+      onDelete(item.id)
+    }
   }
 
   const IconComponent =
@@ -36,33 +76,20 @@ export default function ItemCard({
       ? (LucideIcons[item.icon as keyof typeof LucideIcons] as any)
       : LucideIcons.Package // fallback icon
 
-const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-  const offsetX = -170 // place tooltip to the left
-  const offsetY = -40  // place tooltip above
-  setTooltipPos({ left: e.nativeEvent.offsetX + offsetX, top: e.nativeEvent.offsetY + offsetY })
-}
-
-  const handleMouseEnter = () => {
-    hoverTimeout.current = setTimeout(() => setShowTooltip(true), 600) // 300ms delay
-  }
-
-  const handleMouseLeave = () => {
-    if (hoverTimeout.current) clearTimeout(hoverTimeout.current)
-    setShowTooltip(false)
-  }
-
   return (
     <div
-      className={`relative w-36 h-36 cursor-pointer group`}
-      onClick={() => onMarkCompleted(item.id)}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onMouseMove={handleMouseMove}
+      className={`relative w-36 h-36 cursor-pointer group ${
+        editMode ? 'animate-wiggle' : ''
+      }`}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp} // Clear timer if mouse leaves
     >
       <div
-        className={`flex flex-col items-center justify-center border rounded-2xl bg-gray-50 dark:bg-zinc-800 shadow-sm transition-colors ${
+        className={`flex flex-col items-center justify-center hover:scale-105 transform transition-transform duration-200 border rounded-2xl bg-gray-50 dark:bg-zinc-800 shadow-sm ${
           item.last_completed
-            ? 'border-green-500'
+            ? 'border-green-500 border-6 bg-green-50'
             : 'border-gray-300 dark:border-zinc-700'
         } w-full h-full p-4`}
       >
@@ -77,62 +104,25 @@ const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
           />
         ) : (
           <>
-            <IconComponent className="w-10 h-10 mb-2 text-purple-500" />
-            <span
-              className="text-lg font-semibold text-center"
-              onDoubleClick={(e) => {
-                e.stopPropagation()
-                setEditing(true)
-              }}
-            >
+            <IconComponent className="w-10 h-10 mb-2 text-black-500" />
+            <span className="text-lg font-semibold text-center">
               {name}
             </span>
           </>
         )}
 
-        {/* Delete button faint on hover */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete(item.id)
-          }}
-          className="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          ✕
-        </button>
+        {/* Delete button - only visible on hover in edit mode */}
+        {editMode && (
+          <button
+            onClick={handleDelete}
+            className="absolute top-2 right-2 w-6 h-6 bg-red-300 text-white rounded-full 
+                       opacity-0 group-hover:opacity-70 hover:opacity-100 transition-opacity 
+                       flex items-center justify-center hover:bg-red-600 cursor-pointer"
+          >
+            <X size={12} />
+          </button>
+        )}
       </div>
-
-      {/* Tooltip */}
-      {showTooltip && (
-        <div
-          style={{
-            left: tooltipPos.left,
-            top: tooltipPos.top,
-            width: 160, // fixed width so size doesn't change
-          }}
-          className="absolute z-50 pointer-events-none bg-gray-900 text-white text-xs rounded-md px-2 py-1 shadow-lg opacity-0 animate-fadeIn"
-        >
-          <div className="font-medium">Frequency:</div>
-          <div>{item.frequency}</div>
-          <div className="mt-1 text-gray-300">Description goes here</div>
-        </div>
-      )}
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-2px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out forwards;
-        }
-      `}</style>
     </div>
   )
 }

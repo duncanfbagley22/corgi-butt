@@ -5,14 +5,16 @@ import { supabase } from "@/lib/supabase/supabase"
 import type { Subsection, Item } from "@/types/floorplan"
 import ItemCard from "@/components/ui/cards/itemcard"
 import { CompletionCard } from "@/components/ui/cards/CompletionCard"
-import { ItemEditCard } from "@/components/ui/cards/ItemEditCard"
+import { ItemEditModal } from "@/components/modals/ItemEditModal"
 import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   X,
-  CheckSquare,
+  TextSearch,
   SquarePen,
   Plus,
+  Eye,
+  SquareStar
 } from "lucide-react"
 
 interface SubsectionModalProps {
@@ -29,7 +31,9 @@ export default function SubsectionModal({
   const { user } = useAuth()
   const [items, setItems] = useState<Item[]>([])
   const [showCompletion, setShowCompletion] = useState(false)
-  const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [editMode, setEditMode] = useState(false)
+  const [editingItem, setEditingItem] = useState<Item | null>(null)
+  const [showItemEditModal, setShowItemEditModal] = useState(false)
 
   useEffect(() => {
     fetchItems()
@@ -51,21 +55,18 @@ export default function SubsectionModal({
   }
 
   const addItem = async () => {
-    const { data, error } = await supabase
-      .from("items")
-      .insert([
-        {
-          subsection_id: subsection.id,
-          name: "New Item",
-          frequency: "weekly",
-          last_completed: null,
-          last_completed_by: null,
-        },
-      ])
-      .select()
-      .single()
-
-    if (!error && data) fetchItems()
+    // Always open modal to create new item
+    setEditingItem({
+      id: '',
+      subsection_id: subsection.id,
+      name: '',
+      frequency: 'weekly',
+      last_completed: null,
+      last_completed_by: undefined,
+      description: '',
+      icon: '',
+    } as Item)
+    setShowItemEditModal(true)
   }
 
   const deleteItem = async (id: string) => {
@@ -73,13 +74,27 @@ export default function SubsectionModal({
     fetchItems()
   }
 
-  const renameItem = async (id: string, updates: Partial<Item>) => {
-    await supabase.from("items").update(updates).eq("id", id)
+  const renameItem = async (id: string, newName: string) => {
+    await supabase.from("items").update({ name: newName }).eq("id", id)
     fetchItems()
   }
 
+  const handleItemSaved = (savedData: Partial<Item>) => {
+  if (editingItem?.id) {
+    // Update existing item in local state immediately
+    setItems(prev => prev.map(item => 
+      item.id === editingItem.id 
+        ? { ...item, ...savedData }
+        : item
+    ))
+  } else {
+    // For new items, just refetch since we don't have the new ID
+    fetchItems()
+  }
+}
+
   const markCompleted = async (id: string) => {
-    if (!user) return
+    if (!user || editMode) return // Don't mark completed in edit mode
     const now = new Date().toISOString()
     await supabase
       .from("items")
@@ -96,81 +111,131 @@ export default function SubsectionModal({
     refresh()
   }
 
+  const markIncomplete = async (id: string) => {
+  
+  await supabase
+    .from("items")
+    .update({ last_completed: null, last_completed_by: null })
+    .eq("id", id)
+
+  
+  setItems((prev) => {
+    const updated = prev.map((i) =>
+      i.id === id
+        ? { ...i, last_completed: null, last_completed_by_user: undefined }
+        : i
+    )
+    return updated
+  })
+  
+  refresh()
+}
+
+  const handleItemClick = (item: Item) => {
+    if (editMode) {
+      setEditingItem(item)
+      setShowItemEditModal(true)
+    } else {
+      markCompleted(item.id)
+    }
+  }
+
   if (!subsection) return null
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-      <Card className="w-full max-w-lg p-6 relative">
-        {/* Action Icons */}
-        <div className="absolute top-3 right-3 flex gap-3 text-gray-500 dark:text-gray-300">
-          <span title={showCompletion ? "Hide completion" : "Show completion"}>
-            <CheckSquare
-              size={20}
-              className="hover:text-purple-500 cursor-pointer transition"
+    <>
+      <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+        <Card className="w-full max-w-2xl p-6 relative pb-8">
+          {/* Close Button - isolated top right */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition cursor-pointer"
+            aria-label="Close modal"
+          >
+            <X size={22} />
+          </button>
+
+          <CardHeader className="flex flex-row items-center justify-between mb-4">
+            {/* Left side: Title + Action Icons */}
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-4xl">{subsection.name}</CardTitle>
+              <div className="flex gap-2">
+            <span
+              title={showCompletion ? "Hide details" : "Show details"}
+              className={`p-1 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-700 cursor-pointer transition ${
+                showCompletion ? 'bg-purple-200 dark:bg-purple-800' : ''
+              }`}
               onClick={() => setShowCompletion(!showCompletion)}
-            />
-          </span>
-          <span title="Edit items">
-            <SquarePen
-              size={20}
-              className="hover:text-purple-500 cursor-pointer transition"
-              onClick={() =>
-                setEditingItemId(editingItemId ? null : "editing")
-              }
-            />
-          </span>
-          <span title="Add item">
-            <Plus
-              size={20}
-              className="hover:text-purple-500 cursor-pointer transition"
-              onClick={addItem}
-            />
-          </span>
-          <span title="Close">
-            <X
-              size={20}
-              className="hover:text-red-500 cursor-pointer transition"
-              onClick={onClose}
-            />
-          </span>
-        </div>
-
-        <CardHeader className="mb-4">
-          <CardTitle>{subsection.name}</CardTitle>
-        </CardHeader>
-
-        <CardContent className="grid grid-cols-2 gap-4">
-          {editingItemId
-            ? items.map((item) => (
-                <ItemEditCard
-                  key={item.id}
-                  item={item}
-                  onCancel={() => setEditingItemId(null)}
-                  onSave={(updates) => {
-                    renameItem(item.id, updates)
-                    setEditingItemId(null)
-                  }}
-                />
-              ))
-            : showCompletion
-            ? items.map((item) => <CompletionCard key={item.id} item={item} />)
-            : items.length > 0
-            ? items.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  onRename={(id, name) => renameItem(id, { name })}
-                  onDelete={deleteItem}
-                  onMarkCompleted={markCompleted}
-                />
-              ))
-            : (
-                <p className="text-gray-500 dark:text-gray-400 text-center col-span-2">
-                  No items yet. Add one below.
-                </p>
+            >
+              {showCompletion ? (
+                <SquareStar size={36} className="text-gray-600 dark:text-gray-300" />
+              ) : (
+                <TextSearch size={36} className="text-gray-600 dark:text-gray-300" />
               )}
-        </CardContent>
-      </Card>
-    </div>
+            </span>
+
+                <span
+                  title={editMode ? "Exit edit mode" : "Edit items"}
+                  className={`p-1 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-700 cursor-pointer transition ${
+                    editMode ? 'bg-purple-200 dark:bg-purple-800' : ''
+                  }`}
+                  onClick={() => setEditMode(!editMode)}
+                >
+                  {editMode ? (
+                    <Eye size={36} className="text-gray-600 dark:text-gray-300" />
+                  ) : (
+                    <SquarePen size={36} className="text-gray-600 dark:text-gray-300" />
+                  )}
+                </span>
+
+                <span
+                  title="Add item"
+                  className="p-1 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-700 cursor-pointer transition"
+                  onClick={addItem}
+                >
+                  <Plus size={36} className="text-gray-600 dark:text-gray-300" />
+                </span>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="grid grid-cols-2 gap-4 place-items-center">
+            {showCompletion
+              ? items.map((item) => <CompletionCard key={item.id} item={item} />)
+              : items.length > 0
+              ? items.map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    onRename={renameItem}
+                    onDelete={deleteItem}
+                    onItemClick={handleItemClick}
+                    onMarkIncomplete={markIncomplete}
+                    editMode={editMode}
+                  />
+                ))
+              : (
+                  <p className="text-gray-500 dark:text-gray-400 text-center col-span-2">
+                    No items yet. Add one below.
+                  </p>
+                )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Item Edit Modal */}
+{showItemEditModal && editingItem && (
+<ItemEditModal
+  item={editingItem}
+  subsectionId={subsection.id}
+  isOpen={showItemEditModal}
+  onClose={() => {
+    setShowItemEditModal(false)
+    setEditingItem(null)
+  }}
+  onSaved={handleItemSaved} // ✅ use this instead of fetchItems
+/>
+)}
+    </>
   )
 }

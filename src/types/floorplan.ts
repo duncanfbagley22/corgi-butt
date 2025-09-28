@@ -5,8 +5,8 @@ export interface Item {
   icon?: string
   description?: string
   frequency: string
-  last_completed: string | null
   last_completed_by?: string
+  last_completed?: string | null
   last_completed_by_user?: {
     id: string
     display_name?: string

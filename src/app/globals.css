@@ -120,3 +120,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-2deg) scale(1); }
+  75% { transform: rotate(2deg) scale(1); }
+}
+
+.animate-wiggle {
+  animation: wiggle 0.8s ease-in-out infinite;
+}

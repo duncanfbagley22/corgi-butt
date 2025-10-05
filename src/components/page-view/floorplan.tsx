@@ -13,14 +13,11 @@ interface FloorplanProps {
 export default function Floorplan({
   children,
   gridSize = 20,
-  title = "Apartment Floorplan",
   width = 800,
   height = 600,
 }: FloorplanProps) {
   return (
-    <div className="flex flex-col items-center p-8">
-      {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
-
+    <div className="flex flex-col items-center p-8 pt-1.5">
       <div
         className="relative border-2 border-gray-500 dark:border-zinc-500 rounded-lg bg-gray-50 dark:bg-zinc-900 floorplan-container"
         style={{

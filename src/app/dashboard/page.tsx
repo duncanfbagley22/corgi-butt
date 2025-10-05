@@ -1,8 +1,8 @@
 "use client"
 
-import GeometricBackground from "@/components/ui/geometric-background"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import GeometricBackground from "@/components/ui/other/background/Background"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/shadcn/card"
+import { Button } from "@/components/ui/shadcn/button"
 import { useAuth } from "@/hooks/useAuth"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"

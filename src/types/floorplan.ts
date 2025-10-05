@@ -12,6 +12,9 @@ export interface Item {
     display_name?: string
     full_name: string
   }
+  forced_completion_status?: string  // Changed from boolean to string
+  forced_marked_incomplete?: boolean
+  subsection_id?: string  // Also good to add this
 }
 
 export interface Subsection {
@@ -19,6 +22,7 @@ export interface Subsection {
   name: string
   icon: string
   items: Item[]
+  room_id?: string  // Also good to add this
 }
 
 export type RoomData = {
@@ -26,8 +30,10 @@ export type RoomData = {
   name: string
   icon?: string
   size?: string
+  status?: string
   left_percent: number
   top_percent: number
   width_percent: number
   height_percent: number
+  subsections: Subsection[]
 }

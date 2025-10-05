@@ -1,9 +1,10 @@
 'use client'
 
 import { useRef } from 'react'
-import Room from '@/components/ui/floorplan/room'
+import Room from '@/components/ui/floorplan/Room'
 import { RoomData } from '@/types/floorplan'
 import * as Icons from 'lucide-react'
+import * as CustomIcons from '@/components/icons/custom/room-icons'
 
 interface RoomGridProps {
   rooms: RoomData[]
@@ -20,7 +21,9 @@ export default function RoomGrid({ rooms, onUpdate, onDelete, onClick, gridSize,
   return (
     <div ref={containerRef} className="absolute inset-0">
       {rooms.map((room) => {
-        const IconComponent = room.icon ? (Icons as any)[room.icon] : undefined
+        const IconComponent = room.icon 
+          ? (CustomIcons as any)[room.icon] || (Icons as any)[room.icon]
+          : undefined
 
         return (
           <Room
@@ -32,6 +35,7 @@ export default function RoomGrid({ rooms, onUpdate, onDelete, onClick, gridSize,
             topPercent={room.top_percent}
             widthPercent={room.width_percent}
             heightPercent={room.height_percent}
+            subsections={room.subsections}
             onUpdate={onUpdate}
             onDelete={onDelete}
             onClick={onClick}

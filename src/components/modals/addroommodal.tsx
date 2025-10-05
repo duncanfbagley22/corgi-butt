@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import IconSelector from '@/components/ui/icon-selector'
+import IconSelector from '@/components/ui/other/IconSelector'
 import * as LucideIcons from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/shadcn/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/shadcn/card'
+import * as CustomIcons from '@/components/icons/custom/room-icons'
 
 interface AddRoomModalProps {
   isOpen: boolean
@@ -14,22 +15,22 @@ interface AddRoomModalProps {
 
 // Define icons as before
 const ICON_OPTIONS_RAW = [
-  { name: 'Home', component: 'Home' },
-  { name: 'LampDesk', component: 'LampDesk' },
-  { name: 'Bed', component: 'Bed' },
+  { name: 'Balcony', component: 'Balcony' },
   { name: 'Bath', component: 'Bath' },
-  { name: 'Armchair', component: 'Armchair' },
-  { name: 'Utensils', component: 'Utensils' },
-  { name: 'Dumbbell', component: 'Dumbbell' },
-  { name: 'Refrigerator', component: 'Refrigerator' },
+  { name: 'Bedroom', component: 'Bedroom' },
   { name: 'Car', component: 'Car' },
+  { name: 'Chair', component: 'Chair' },
+  { name: 'Couch', component: 'Couch' },
+  { name: 'Desk', component: 'Desk' },
   { name: 'Footprints', component: 'Footprints' },
-  { name: 'Shirt', component: 'Shirt' }
+  { name: 'Hanger', component: 'Hanger' },
+  { name: 'Kitchen', component: 'Kitchen' },
+  { name: 'Toilet', component: 'Toilet' }
 ] as const
 
 type IconOption = {
   name: string
-  component: keyof typeof LucideIcons
+  component: keyof typeof CustomIcons
 }
 const ICON_OPTIONS: IconOption[] = ICON_OPTIONS_RAW.map(i => ({
   name: i.name,
@@ -38,7 +39,7 @@ const ICON_OPTIONS: IconOption[] = ICON_OPTIONS_RAW.map(i => ({
 
 export default function AddRoomModal({ isOpen, onClose, onAdd }: AddRoomModalProps) {
   const [roomName, setRoomName] = useState('')
-  const [selectedIcon, setSelectedIcon] = useState<string>('Home')
+  const [selectedIcon, setSelectedIcon] = useState<string>('Toilet')
 
   if (!isOpen) return null
 
@@ -47,13 +48,13 @@ export default function AddRoomModal({ isOpen, onClose, onAdd }: AddRoomModalPro
     if (roomName.trim()) {
       onAdd(roomName.trim(), selectedIcon)
       setRoomName('')
-      setSelectedIcon('Home')
+      setSelectedIcon('Toilet')
     }
   }
 
   const handleClose = () => {
     setRoomName('')
-    setSelectedIcon('Home')
+    setSelectedIcon('Toilet')
     onClose()
   }
 

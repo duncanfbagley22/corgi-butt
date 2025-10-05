@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import IconSelector from '@/components/ui/icon-selector'
+import IconSelector from '@/components/ui/other/IconSelector'
 import * as LucideIcons from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/shadcn/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/shadcn/card'
 
 interface AddSubsectionModalProps {
   isOpen: boolean

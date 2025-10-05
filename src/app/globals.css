@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
 
@@ -130,3 +131,5 @@
 .animate-wiggle {
   animation: wiggle 0.8s ease-in-out infinite;
 }
+
+

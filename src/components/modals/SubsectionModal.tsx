@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase/supabase"
 import type { Subsection, Item } from "@/types/floorplan"
-import ItemCard from "@/components/ui/cards/itemcard"
-import { CompletionCard } from "@/components/ui/cards/CompletionCard"
+import { ItemCard } from "@/components/ui/cards/ItemCard"
 import { ItemEditModal } from "@/components/modals/ItemEditModal"
+import { ForcedCompletionModal } from "@/components/modals/ForcedCompletionModal"
 import { useAuth } from "@/hooks/useAuth"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/shadcn/card"
 import {
   X,
   TextSearch,
@@ -34,6 +34,11 @@ export default function SubsectionModal({
   const [editMode, setEditMode] = useState(false)
   const [editingItem, setEditingItem] = useState<Item | null>(null)
   const [showItemEditModal, setShowItemEditModal] = useState(false)
+  
+  // States for forced completion modal
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [selectedItemName, setSelectedItemName] = useState<string>('')
 
   useEffect(() => {
     fetchItems()
@@ -49,6 +54,7 @@ export default function SubsectionModal({
       `
       )
       .eq("subsection_id", subsection.id)
+      .order("created_at", { ascending: true })
 
     if (error) console.error("Error fetching items:", error)
     else setItems(data || [])
@@ -80,25 +86,25 @@ export default function SubsectionModal({
   }
 
   const handleItemSaved = (savedData: Partial<Item>) => {
-  if (editingItem?.id) {
-    // Update existing item in local state immediately
-    setItems(prev => prev.map(item => 
-      item.id === editingItem.id 
-        ? { ...item, ...savedData }
-        : item
-    ))
-  } else {
-    // For new items, just refetch since we don't have the new ID
-    fetchItems()
+    if (editingItem?.id) {
+      // Update existing item in local state immediately
+      setItems(prev => prev.map(item => 
+        item.id === editingItem.id 
+          ? { ...item, ...savedData }
+          : item
+      ))
+    } else {
+      // For new items, just refetch since we don't have the new ID
+      fetchItems()
+    }
   }
-}
 
   const markCompleted = async (id: string) => {
     if (!user || editMode) return // Don't mark completed in edit mode
     const now = new Date().toISOString()
     await supabase
       .from("items")
-      .update({ last_completed: now, last_completed_by: user.id })
+      .update({ last_completed: now, last_completed_by: user.id, forced_marked_incomplete: false, forced_completion_status: null })
       .eq("id", id)
 
     setItems((prev) =>
@@ -108,28 +114,43 @@ export default function SubsectionModal({
           : i
       )
     )
+    await fetchItems()
     refresh()
   }
 
   const markIncomplete = async (id: string) => {
-  
-  await supabase
-    .from("items")
-    .update({ last_completed: null, last_completed_by: null })
-    .eq("id", id)
+    const item = items.find(i => i.id === id)
+    if (!item) return
+    
+    setSelectedItemId(id)
+    setSelectedItemName(item.name)
+    setModalOpen(true)
+  }
 
-  
-  setItems((prev) => {
-    const updated = prev.map((i) =>
-      i.id === id
-        ? { ...i, last_completed: null, last_completed_by_user: undefined }
-        : i
-    )
-    return updated
-  })
-  
-  refresh()
-}
+  const handleStatusUpdate = async (status: string) => {
+    if (!selectedItemId) return
+    
+    await supabase
+      .from("items")
+      .update({ 
+        last_completed: null, 
+        last_completed_by: null, 
+        forced_marked_incomplete: true,
+        forced_completion_status: status 
+      })
+      .eq("id", selectedItemId)
+    
+    setItems((prev) => {
+      const updated = prev.map((i) =>
+        i.id === selectedItemId
+          ? { ...i, last_completed: null, last_completed_by_user: undefined }
+          : i
+      )
+      return updated
+    })
+    await fetchItems()
+    refresh()
+  }
 
   const handleItemClick = (item: Item) => {
     if (editMode) {
@@ -199,43 +220,50 @@ export default function SubsectionModal({
             </div>
           </CardHeader>
 
-          <CardContent className="grid grid-cols-2 gap-4 place-items-center">
-            {showCompletion
-              ? items.map((item) => <CompletionCard key={item.id} item={item} />)
-              : items.length > 0
-              ? items.map((item) => (
-                  <ItemCard
-                    key={item.id}
-                    item={item}
-                    onRename={renameItem}
-                    onDelete={deleteItem}
-                    onItemClick={handleItemClick}
-                    onMarkIncomplete={markIncomplete}
-                    editMode={editMode}
-                  />
-                ))
-              : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center col-span-2">
-                    No items yet. Add one below.
-                  </p>
-                )}
-          </CardContent>
+        <CardContent className="grid grid-cols-2 gap-4 place-items-center">
+          {items.length > 0 ? (
+            items.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                showCompletion={showCompletion}
+                onRename={renameItem}
+                onDelete={deleteItem}
+                onItemClick={handleItemClick}
+                onMarkIncomplete={markIncomplete}
+                editMode={editMode}
+              />
+            ))
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400 text-center col-span-2">
+              No items yet. Add one below.
+            </p>
+          )}
+        </CardContent>
         </Card>
       </div>
 
       {/* Item Edit Modal */}
-{showItemEditModal && editingItem && (
-<ItemEditModal
-  item={editingItem}
-  subsectionId={subsection.id}
-  isOpen={showItemEditModal}
-  onClose={() => {
-    setShowItemEditModal(false)
-    setEditingItem(null)
-  }}
-  onSaved={handleItemSaved} // ✅ use this instead of fetchItems
-/>
-)}
+      {showItemEditModal && editingItem && (
+        <ItemEditModal
+          item={editingItem}
+          subsectionId={subsection.id}
+          isOpen={showItemEditModal}
+          onClose={() => {
+            setShowItemEditModal(false)
+            setEditingItem(null)
+          }}
+          onSaved={handleItemSaved}
+        />
+      )}
+
+      {/* Forced Completion Modal */}
+      <ForcedCompletionModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleStatusUpdate}
+        itemName={selectedItemName}
+      />
     </>
   )
 }

@@ -5,10 +5,10 @@ import * as LucideIcons from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import SubsectionCard from '@/components/ui/cards/SubsectionCard'
 import SubsectionModal from '@/components/modals/SubsectionModal'
-import AddSubsectionModal from '@/components/modals/addsubsectionmodal'
+import AddSubsectionModal from '@/components/modals/AddSubsectionModal'
 import type { Subsection } from '@/types/floorplan'
-import { Button } from '@/components/ui/button'
-import GeometricBackground from '@/components/ui/geometric-background'
+import { Button } from '@/components/ui/shadcn/button'
+import GeometricBackground from '@/components/ui/other/background/Background'
 
 interface RoomDetailProps {
   roomId: string
@@ -39,7 +39,7 @@ export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps
       (subsectionsData || []).map(async (sub: any) => {
         const { data: itemsData, error: itemsError } = await supabase
           .from('items')
-          .select('id, icon, name, last_completed, frequency')
+          .select('id, icon, name, last_completed, frequency, forced_marked_incomplete, forced_completion_status')
           .eq('subsection_id', sub.id)
 
         if (itemsError) console.error('Error fetching items:', itemsError)

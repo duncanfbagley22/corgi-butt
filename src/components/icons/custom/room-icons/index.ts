@@ -1,0 +1,11 @@
+export { default as Balcony } from "./Balcony";
+export { default as Bath } from "./Bath";
+export { default as Bedroom } from "./Bedroom";
+export { default as Car } from "./Car";
+export { default as Chair } from "./Chair";
+export { default as Couch } from "./Couch";
+export { default as Desk } from "./Desk";
+export { default as Footprints } from "./Footprints";
+export { default as Hanger } from "./Hanger";
+export { default as Kitchen } from "./Kitchen";
+export { default as Toilet } from "./Toilet";

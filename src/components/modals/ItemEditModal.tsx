@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/shadcn/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/shadcn/card"
 import * as LucideIcons from "lucide-react"
 import { X, LucideIcon } from "lucide-react"
 import { supabase } from "@/lib/supabase/supabase"

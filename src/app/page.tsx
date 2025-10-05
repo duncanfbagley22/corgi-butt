@@ -26,5 +26,6 @@ export default function HomePage() {
     <main className="p-8">
       <p>Logged in as: {user.user_metadata?.display_name || user.email}</p>
     </main>
+    
   )
 }

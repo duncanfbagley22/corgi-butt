@@ -1,0 +1,15 @@
+import * as React from "react";
+import type { SVGProps } from "react";
+const SvgClothing = (props: SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    data-name="Layer 1"
+    viewBox="0 0 24 24"
+    width="1em"
+    height="1em"
+    {...props}
+  >
+    <path d="M9 0h6c0 1.654-1.346 3-3 3S9 1.654 9 0m11.815 1.195a9.8 9.8 0 0 0-3.82-1.144C16.967 2.784 14.74 5 12 5S7.033 2.784 7.005.051a9.8 9.8 0 0 0-3.82 1.144C1.221 2.25 0 4.335 0 6.636v2.388a3 3 0 0 0 3 3V9a1 1 0 0 1 2 0v11a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V9a1 1 0 0 1 2 0v3a3 3 0 0 0 3-3V6.636c0-2.301-1.221-4.386-3.185-5.44Z" />
+  </svg>
+);
+export default SvgClothing;

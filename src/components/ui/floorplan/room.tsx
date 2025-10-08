@@ -25,22 +25,22 @@ interface RoomProps {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; border: string; bgDark: string }> = {
-  'excellent': { 
+  'done': { 
     bg: 'bg-gradient-to-br from-green-50 to-emerald-100', 
     border: 'border-green-400',
     bgDark: 'dark:from-green-950 dark:to-emerald-900'
   },
-  'good': { 
+  'soon': { 
     bg: 'bg-gradient-to-br from-yellow-50 to-amber-100', 
     border: 'border-yellow-400',
     bgDark: 'dark:from-yellow-950 dark:to-amber-900'
   },
-  'needs-attention': { 
+  'due': { 
     bg: 'bg-gradient-to-br from-orange-50 to-red-100', 
     border: 'border-orange-400',
     bgDark: 'dark:from-orange-950 dark:to-red-900'
   },
-  'critical': { 
+  'overdue': { 
     bg: 'bg-gradient-to-br from-red-50 to-rose-100', 
     border: 'border-red-500',
     bgDark: 'dark:from-red-950 dark:to-rose-900'

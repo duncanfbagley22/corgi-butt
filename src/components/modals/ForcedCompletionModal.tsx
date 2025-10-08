@@ -13,9 +13,9 @@ interface ForcedCompletionModalProps {
 }
 
 const COMPLETION_STATUSES = [
-  { value: 'due-soon', label: 'Low' },
-  { value: 'overdue', label: 'Medium' },
-  { value: 'way-overdue', label: 'High' },
+  { value: 'soon', label: 'Low' },
+  { value: 'due', label: 'Medium' },
+  { value: 'overdue', label: 'High' },
 ]
 
 export function ForcedCompletionModal({
@@ -39,8 +39,15 @@ export function ForcedCompletionModal({
     onClose()
   }
 
+    const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose()
+    }
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+        onClick={handleBackdropClick}>
       <Card className="w-full max-w-sm p-6">
         <CardHeader>
           <CardTitle>Update Completion Status</CardTitle>
@@ -62,7 +69,7 @@ export function ForcedCompletionModal({
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 
-                         rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 
+                         rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 
                          dark:bg-zinc-800 dark:text-white"
             >
               {COMPLETION_STATUSES.map((status) => (

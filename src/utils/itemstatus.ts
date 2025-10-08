@@ -1,8 +1,8 @@
 // Status calculation utilities for items, subsections, and rooms
 
-export type ItemStatus = "due" | "up-to-date" | "upcoming" | "due-soon" | "overdue" | "way-overdue"
+export type ItemStatus = "done" | "soon" | "due" | "overdue"
 
-export type OverallStatus = "excellent" | "good" | "needs-attention" | "critical"
+export type OverallStatus = "done" | "soon" | "due" | "overdue"
 
 export interface StatusResult {
   statusCounts: Record<ItemStatus, number>
@@ -13,12 +13,10 @@ export interface StatusResult {
 
 // Weight mapping for each status
 const STATUS_WEIGHTS: Record<ItemStatus, number> = {
-  'up-to-date': 1.0,
-  'upcoming': 0.9,
-  'due-soon': 0.7,
-  'overdue': 0.4,
-  'way-overdue': 0.2,
-  'due': 0.5
+  'done': 1.0,
+  'soon': 0.9,
+  'due': 0.5,
+  'overdue': 0.4
 }
 
 // Existing item status function
@@ -40,7 +38,7 @@ export function getItemStatus(
     lastDate.setHours(0, 0, 0, 0)
     
     if (lastDate.getTime() === today.getTime()) {
-      return "up-to-date"
+      return "done"
     } else {
       return "overdue"
     }
@@ -78,36 +76,34 @@ export function getItemStatus(
   const wayOverdueThreshold = frequencyDays * 1.15   // 115%
 
   if (daysSinceCompleted <= upToDateThreshold) {
-    return "up-to-date"
+    return "done"
   } else if (daysSinceCompleted <= upcomingThreshold) {
-    return "upcoming"
+    return "soon"
   } else if (daysSinceCompleted <= dueSoonThreshold) {
-    return "due-soon"
+    return "due"
   } else if (daysSinceCompleted <= wayOverdueThreshold) {
     return "overdue"
   } else {
-    return "way-overdue"
+    return "overdue"
   }
 }
 
 // Helper to determine overall status from score
 function getOverallStatusFromScore(score: number): OverallStatus {
-  if (score >= 0.9) return "excellent"
-  if (score >= 0.75) return "good"
-  if (score >= 0.6) return "needs-attention"
-  return "critical"
+  if (score >= 0.9) return "done"
+  if (score >= 0.75) return "soon"
+  if (score >= 0.6) return "due"
+  return "overdue"
 }
 
 // Helper to calculate status for a collection of items
 function calculateStatusFromItems(items: any[]): StatusResult {
   // Initialize counts
   const statusCounts: Record<ItemStatus, number> = {
-    'up-to-date': 0,
-    'upcoming': 0,
-    'due-soon': 0,
-    'overdue': 0,
-    'way-overdue': 0,
-    'due': 0
+    'done': 0,
+    'soon': 0,
+    'due': 0,
+    'overdue': 0
   }
 
   // If no items, return empty result
@@ -116,7 +112,7 @@ function calculateStatusFromItems(items: any[]): StatusResult {
       statusCounts,
       totalItems: 0,
       overallScore: 0,
-      overallStatus: 'critical'
+      overallStatus: 'overdue'
     }
   }
 

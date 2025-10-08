@@ -6,14 +6,13 @@ import * as LucideIcons from 'lucide-react'
 import { Calendar, CircleUserRound, Clock, X } from 'lucide-react'
 import type { Item } from '@/types/floorplan'
 import { getItemStatus } from '@/utils/itemstatus'
+import * as CustomIcons from '@/components/icons/custom/task-icons'
 
 const statusStyles: Record<string, string> = {
-  "up-to-date": "border-green-500 border-4 bg-green-50 dark:bg-green-900/20",
-  "upcoming": "border-blue-500 border-4 bg-blue-50 dark:bg-blue-900/20",
-  "due-soon": "border-yellow-500 border-4 bg-yellow-50 dark:bg-yellow-900/20",
-  "overdue": "border-orange-500 border-4 bg-orange-50 dark:bg-orange-900/20",
-  "way-overdue": "border-red-600 border-4 bg-red-50 dark:bg-red-900/30",
-  "due": "border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800",
+  "done": "border-green-500 border-4 bg-green-50 dark:bg-green-900/20",
+  "soon": "border-yellow-500 border-4 bg-yellow-50 dark:bg-yellow-900/20",
+  "due": "border-orange-500 border-4 bg-orange-50 dark:bg-orange-900/20",
+  "overdue": "border-red-600 border-4 bg-red-50 dark:bg-red-900/30"
 }
 
 interface ItemCardProps {
@@ -110,10 +109,10 @@ export function ItemCard({
     }
   }
 
-  const IconComponent =
-    item.icon && LucideIcons[item.icon as keyof typeof LucideIcons]
-      ? (LucideIcons[item.icon as keyof typeof LucideIcons] as any)
-      : LucideIcons.Package
+  const IconComponent = item.icon
+    ? (CustomIcons[item.icon as keyof typeof CustomIcons] as any) || 
+      (LucideIcons[item.icon as keyof typeof LucideIcons] as any)
+    : null
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Never"

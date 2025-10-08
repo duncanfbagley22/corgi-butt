@@ -1,0 +1,15 @@
+import * as React from "react";
+import type { SVGProps } from "react";
+const SvgBlanket = (props: SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    data-name="Layer 1"
+    viewBox="0 0 24 24"
+    width="1em"
+    height="1em"
+    {...props}
+  >
+    <path d="M5 16h14.5c2.481 0 4.5-2.019 4.5-4.5v-7C24 2.019 21.981 0 19.5 0H6C2.691 0 0 2.691 0 6v13c0 2.757 2.243 5 5 5h16c1.654 0 3-1.346 3-3s-1.346-3-3-3H5a1 1 0 1 0 0 2h16a1.001 1.001 0 0 1 0 2H5c-1.654 0-3-1.346-3-3s1.346-3 3-3" />
+  </svg>
+);
+export default SvgBlanket;

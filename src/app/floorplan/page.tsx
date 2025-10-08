@@ -13,7 +13,7 @@ import Background from '@/components/ui/other/background/Background'
 
 import RoomGrid from '@/components/ui/floorplan/RoomGrid'
 
-import AddRoomModal from '@/components/modals/AddRoomModal'
+import RoomFormModal from '@/components/modals/RoomFormModal'
 
 import RoomCard from '@/components/ui/cards/RoomCard'
 
@@ -23,6 +23,7 @@ import { Plus, Layout, List, Lock, LockOpen } from 'lucide-react'
 export default function FloorplanPage() {
   const [rooms, setRooms] = useState<RoomData[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
+  const [editingRoom, setEditingRoom] = useState<{ id: string; name: string; icon?: string } | null>(null)
   const [selectedRoom, setSelectedRoom] = useState<{ id: string; name: string } | null>(null)
   const [listView, setListView] = useState(true)
   const [editMode, setEditMode] = useState(false)
@@ -85,10 +86,29 @@ export default function FloorplanPage() {
     }
     setShowAddForm(false)
   }
+
+  const handleEditRoom = async (id: string, name: string, icon: string) => {
+    const { error } = await supabase.from('rooms').update({ name, icon }).eq('id', id)
+    if (error) {
+      console.error('Error updating room:', error)
+    } else {
+      setRooms(prev => prev.map(r => r.id === id ? { ...r, name, icon } : r))
+    }
+    setShowAddForm(false)
+    setEditingRoom(null)
+  }
   
   // Select Room
-  const handleRoomClick = (roomId: string, roomName: string) => setSelectedRoom({ id: roomId, name: roomName })
-  
+  const handleRoomClick = (roomId: string, roomName: string, roomIcon?: string) => {
+    if (editMode) {
+      // In edit mode, open edit modal
+      setEditingRoom({ id: roomId, name: roomName, icon: roomIcon })
+      setShowAddForm(true)
+    } else {
+      // Normal mode, open room detail
+      setSelectedRoom({ id: roomId, name: roomName })
+    }
+  }
   // Back to Floorplan
   const handleBackToFloorplan = () => setSelectedRoom(null)
   
@@ -114,7 +134,16 @@ export default function FloorplanPage() {
     <div>
       <Background />
 
-      <AddRoomModal isOpen={showAddForm} onClose={() => setShowAddForm(false)} onAdd={handleAddRoom} />
+      <RoomFormModal
+        isOpen={showAddForm} 
+        onClose={() => {
+          setShowAddForm(false)
+          setEditingRoom(null)
+        }} 
+        onAdd={handleAddRoom}
+        onEdit={handleEditRoom}
+        editingRoom={editingRoom}
+      />
 
       {/* Header with Title and Buttons */}
       <div className={`flex justify-between items-center mt-6 mb-4 ${listView ? 'max-w-md mx-auto' : 'mx-auto'}`} style={!listView ? { width: '800px' } : {}}>

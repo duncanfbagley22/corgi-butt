@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import * as LucideIcons from 'lucide-react'
+import { Circle, Triangle, Diamond, Hexagon } from 'lucide-react'
 import { X, Info } from 'lucide-react'
 import { getRoomStatus, type OverallStatus } from '@/utils/itemstatus'
 import type { RoomData, Subsection } from '@/types/floorplan'
@@ -23,22 +24,22 @@ interface RoomCardProps {
 
 // Status color mapping for backgrounds and borders
 const STATUS_STYLES: Record<OverallStatus, { bg: string; border: string; bgDark: string }> = {
-  'excellent': { 
+  'done': { 
     bg: 'bg-gradient-to-br from-green-50 to-emerald-100', 
     border: 'border-green-400',
     bgDark: 'dark:from-green-950 dark:to-emerald-900'
   },
-  'good': { 
+  'soon': { 
     bg: 'bg-gradient-to-br from-yellow-50 to-amber-100', 
     border: 'border-yellow-400',
     bgDark: 'dark:from-yellow-950 dark:to-amber-900'
   },
-  'needs-attention': { 
+  'due': { 
     bg: 'bg-gradient-to-br from-orange-50 to-red-100', 
     border: 'border-orange-400',
     bgDark: 'dark:from-orange-950 dark:to-red-900'
   },
-  'critical': { 
+  'overdue': { 
     bg: 'bg-gradient-to-br from-red-50 to-rose-100', 
     border: 'border-red-500',
     bgDark: 'dark:from-red-950 dark:to-rose-900'
@@ -46,12 +47,10 @@ const STATUS_STYLES: Record<OverallStatus, { bg: string; border: string; bgDark:
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  'up-to-date': 'Up to Date',
-  'upcoming': 'Upcoming',
-  'due-soon': 'Due Soon',
-  'overdue': 'Overdue',
-  'way-overdue': 'Way Overdue',
-  'due': 'Due'
+  'done': 'Done',
+  'soon': 'Soon',
+  'due': 'Due',
+  'overdue': 'Overdue'
 }
 
 export default function RoomCard({
@@ -147,27 +146,76 @@ export default function RoomCard({
           )}
         </>
       ) : (
-        /* Back of Card */
-        <div className="px-6 py-4 w-full h-full flex flex-col justify-center">
-          <h3 className="font-bold text-center mb-3 text-gray-800 dark:text-gray-100" 
-              style={{ fontSize: size / 11 }}>
-            Status Breakdown
-          </h3>
-          <div className="space-y-1.5" style={{ fontSize: size / 15 }}>
-            {Object.entries(statusInfo.statusCounts).map(([status, count]) => (
-              count > 0 && (
-                <div key={status} className="flex justify-between text-gray-700 dark:text-gray-300">
-                  <span>{STATUS_LABELS[status]}:</span>
-                  <span className="font-semibold">{count}</span>
+        /* Back of Card - 2x2 Grid of Status Icons */
+        <div className="w-full h-full flex items-center justify-center p-4">
+          <div className="grid grid-cols-2 gap-4 w-full max-w-[85%]">
+            {/* Done - Green Circle */}
+            <div className="flex items-center justify-center">
+              <div className="relative">
+                <Circle 
+                  size={size / 3.5} 
+                  fill="#22c55e" 
+                  stroke="none"
+                  className="text-green-500"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-bold text-white" style={{ fontSize: size / 8 }}>
+                    {statusInfo.statusCounts['done']}
+                  </span>
                 </div>
-              )
-            ))}
-          </div>
-          <div className="mt-3 pt-3 border-t-2 border-gray-400 dark:border-gray-500 
-                          flex justify-between font-bold text-gray-800 dark:text-gray-100" 
-               style={{ fontSize: size / 13 }}>
-            <span>Total:</span>
-            <span>{statusInfo.totalItems}</span>
+              </div>
+            </div>
+
+            {/* Soon - Yellow Triangle */}
+            <div className="flex items-center justify-center">
+              <div className="relative">
+                <Triangle 
+                  size={size / 3.5} 
+                  fill="#eab308" 
+                  stroke="none"
+                  className="text-yellow-500"
+                />
+                <div className="absolute inset-0 flex items-center justify-center pt-1">
+                  <span className="font-bold text-white" style={{ fontSize: size / 8 }}>
+                    {statusInfo.statusCounts['soon']}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Due - Orange Diamond */}
+            <div className="flex items-center justify-center">
+              <div className="relative">
+                <Diamond 
+                  size={size / 3.5} 
+                  fill="#f97316" 
+                  stroke="none"
+                  className="text-orange-500"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-bold text-white" style={{ fontSize: size / 8 }}>
+                    {statusInfo.statusCounts['due']}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Overdue - Red Hexagon */}
+            <div className="flex items-center justify-center">
+              <div className="relative">
+                <Hexagon 
+                  size={size / 3.5} 
+                  fill="#ef4444" 
+                  stroke="none"
+                  className="text-red-500"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-bold text-white" style={{ fontSize: size / 8 }}>
+                    {statusInfo.statusCounts['overdue']}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

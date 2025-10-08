@@ -14,8 +14,10 @@ import {
   SquarePen,
   Plus,
   Eye,
-  SquareStar
+  Lock,
+  LockOpen
 } from "lucide-react"
+import { Button } from '@/components/ui/shadcn/button'
 
 interface SubsectionModalProps {
   subsection: Subsection
@@ -177,46 +179,39 @@ export default function SubsectionModal({
           </button>
 
           <CardHeader className="flex flex-row items-center justify-between mb-4">
-            {/* Left side: Title + Action Icons */}
-            <div className="flex items-center gap-3">
-              <CardTitle className="text-4xl">{subsection.name}</CardTitle>
-              <div className="flex gap-2">
-            <span
-              title={showCompletion ? "Hide details" : "Show details"}
-              className={`p-1 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-700 cursor-pointer transition ${
-                showCompletion ? 'bg-purple-200 dark:bg-purple-800' : ''
-              }`}
-              onClick={() => setShowCompletion(!showCompletion)}
-            >
-              {showCompletion ? (
-                <SquareStar size={36} className="text-gray-600 dark:text-gray-300" />
-              ) : (
-                <TextSearch size={36} className="text-gray-600 dark:text-gray-300" />
-              )}
-            </span>
+            {/* Left side: Title */}
+            <CardTitle className="text-4xl">{subsection.name}</CardTitle>
 
-                <span
-                  title={editMode ? "Exit edit mode" : "Edit items"}
-                  className={`p-1 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-700 cursor-pointer transition ${
-                    editMode ? 'bg-purple-200 dark:bg-purple-800' : ''
-                  }`}
-                  onClick={() => setEditMode(!editMode)}
-                >
-                  {editMode ? (
-                    <Eye size={36} className="text-gray-600 dark:text-gray-300" />
-                  ) : (
-                    <SquarePen size={36} className="text-gray-600 dark:text-gray-300" />
-                  )}
-                </span>
+            {/* Right side: Action Icons */}
+            <div className="flex gap-2">
+              <Button
+                title="Add item"
+                className={`flex items-center cursor-pointer transition`}
+                onClick={addItem}
+              >
+                <Plus size={16} />
+              </Button>
+              <Button
+                title={showCompletion ? "Hide details" : "Show details"}
+                className={`flex items-center cursor-pointer transition`}
+                variant= {showCompletion ? "outline" : "default"}
+                onClick={() => setShowCompletion(!showCompletion)}
+              >
+                <TextSearch size={16} />
+              </Button>
 
-                <span
-                  title="Add item"
-                  className="p-1 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-700 cursor-pointer transition"
-                  onClick={addItem}
-                >
-                  <Plus size={36} className="text-gray-600 dark:text-gray-300" />
-                </span>
-              </div>
+              <Button
+                title={editMode ? "Exit edit mode" : "Edit items"}
+                className={`flex items-center cursor-pointer transition`}
+                variant= {editMode ? "outline" : "default"}
+                onClick={() => setEditMode(!editMode)}
+              >
+                {editMode ? (
+                  <LockOpen size={16} />
+                ) : (
+                  <Lock size={16} />
+                )}
+              </Button>
             </div>
           </CardHeader>
 

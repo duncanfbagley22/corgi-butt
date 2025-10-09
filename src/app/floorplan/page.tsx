@@ -1,6 +1,5 @@
 'use client'
 
-// Floorplan Page - Displays the floorplan with rooms and allows adding/editing rooms
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/supabase'
 import { RoomData } from '@/types/floorplan'
@@ -8,17 +7,14 @@ import { getRoomStatus } from '@/utils/itemstatus'
 
 import Floorplan from '@/components/page-view/Floorplan'
 import RoomDetail from '@/components/page-view/RoomDetail'
-
 import Background from '@/components/ui/other/background/Background'
-
 import RoomGrid from '@/components/ui/floorplan/RoomGrid'
-
 import RoomFormModal from '@/components/modals/RoomFormModal'
-
 import RoomCard from '@/components/ui/cards/RoomCard'
-
 import { Button } from '@/components/ui/shadcn/button'
 import { Plus, Layout, List, Lock, LockOpen } from 'lucide-react'
+
+import LoadSpinner from '@/components/ui/other/LoadSpinner'
 
 export default function FloorplanPage() {
   const [rooms, setRooms] = useState<RoomData[]>([])
@@ -27,10 +23,24 @@ export default function FloorplanPage() {
   const [selectedRoom, setSelectedRoom] = useState<{ id: string; name: string } | null>(null)
   const [listView, setListView] = useState(true)
   const [editMode, setEditMode] = useState(false)
+  const [cardSize, setCardSize] = useState(160)
 
-  // Fetch rooms from Supabase on mount
+  // 🌀 Add loading state
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setCardSize(window.innerWidth < 768 ? 110 : 160)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Fetch rooms
   useEffect(() => {
     const fetchRooms = async () => {
+      setLoading(true) // 🌀 Start loading
       const { data, error } = await supabase
         .from('rooms')
         .select(`
@@ -48,13 +58,10 @@ export default function FloorplanPage() {
             )
           )
         `)
-      
-      console.log('Fetched rooms with subsections:', data) // Debug log
-      
+
       if (error) {
         console.error('Error fetching rooms:', error)
       } else {
-        // Calculate status for each room
         const roomsWithStatus = (data || []).map(room => {
           const statusResult = getRoomStatus(room.subsections || [])
           return {
@@ -62,16 +69,16 @@ export default function FloorplanPage() {
             status: statusResult.overallStatus
           }
         })
-        
-        console.log('Rooms with calculated status:', roomsWithStatus) // Debug log
         setRooms(roomsWithStatus)
       }
+      setLoading(false) // 🌀 End loading
     }
+
     fetchRooms()
   }, [])
 
-  // Handlers
-  // Add Room
+  // --- existing handlers unchanged ---
+
   const handleAddRoom = async (name: string, icon: string) => {
     const newRoom = { name, icon, left_percent: 10, top_percent: 10, width_percent: 20, height_percent: 15 }
     const { data, error } = await supabase.from('rooms').insert([newRoom]).select().single()
@@ -79,7 +86,7 @@ export default function FloorplanPage() {
     if (data) {
       const roomWithStatus = {
         ...data,
-        status: 'critical', // New rooms start with critical status (no items)
+        status: 'critical',
         subsections: []
       }
       setRooms((prev) => [...prev, roomWithStatus])
@@ -97,35 +104,30 @@ export default function FloorplanPage() {
     setShowAddForm(false)
     setEditingRoom(null)
   }
-  
-  // Select Room
+
   const handleRoomClick = (roomId: string, roomName: string, roomIcon?: string) => {
     if (editMode) {
-      // In edit mode, open edit modal
       setEditingRoom({ id: roomId, name: roomName, icon: roomIcon })
       setShowAddForm(true)
     } else {
-      // Normal mode, open room detail
       setSelectedRoom({ id: roomId, name: roomName })
     }
   }
-  // Back to Floorplan
+
   const handleBackToFloorplan = () => setSelectedRoom(null)
-  
-  // Delete Room
+
   const handleDeleteRoom = async (id: string) => {
     const { error } = await supabase.from('rooms').delete().eq('id', id)
     if (error) console.error('Error deleting room:', error)
     else setRooms((prev) => prev.filter(r => r.id !== id))
   }
 
-  // Update Room Position/Size
   const handleUpdate = async (id: string, left: number, top: number, width: number, height: number) => {
     setRooms(prev => prev.map(r => r.id === id ? { ...r, left_percent: left, top_percent: top, width_percent: width, height_percent: height } : r))
     await supabase.from('rooms').update({ left_percent: left, top_percent: top, width_percent: width, height_percent: height }).eq('id', id)
   }
 
-  // Render Room Detail if a room is selected
+  // Render Room Detail if selected
   if (selectedRoom) {
     return <RoomDetail roomId={selectedRoom.id} roomName={selectedRoom.name} onBack={handleBackToFloorplan} />
   }
@@ -135,52 +137,54 @@ export default function FloorplanPage() {
       <Background />
 
       <RoomFormModal
-        isOpen={showAddForm} 
+        isOpen={showAddForm}
         onClose={() => {
           setShowAddForm(false)
           setEditingRoom(null)
-        }} 
+        }}
         onAdd={handleAddRoom}
         onEdit={handleEditRoom}
         editingRoom={editingRoom}
       />
 
-      {/* Header with Title and Buttons */}
-      <div className={`flex justify-between items-center mt-6 mb-4 ${listView ? 'max-w-md mx-auto' : 'mx-auto'}`} style={!listView ? { width: '800px' } : {}}>
-        {/* Page Title */}
-        <h1 className="text-2xl font-bold font-sans">
+      {/* Header */}
+      <div className={`sticky top-0 z-10 md:backdrop-blur-none backdrop-blur-md pt-6 pb-4 flex justify-between items-center px-4 ${listView ? 'max-w-4xl' : 'max-w-4xl'} mx-auto w-full`}>
+        <h1 className="text-4xl font-bold" style={{ fontFamily: 'DM Sans, sans-serif' }}>
           {listView ? 'Rooms' : 'Floorplan'}
         </h1>
 
-        {/* Buttons */}
         <div className="flex gap-2">
-          <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2">
+          <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2" style={{ width: '50px', height: '40px' }}>
             <Plus size={16} />
           </Button>
 
-          <Button onClick={() => {setListView(!listView); setEditMode(false)}} className="flex items-center gap-2">
+          <Button onClick={() => { setListView(!listView); setEditMode(false) }} className="hidden md:flex items-center gap-2" style={{ width: '50px', height: '40px' }}>
             {listView ? <Layout size={16} /> : <List size={16} />}
           </Button>
-          
-          {/* Edit Mode Toggle - only show when not in list view */}
-            <Button 
-              onClick={() => setEditMode(!editMode)} 
-              className="flex items-center gap-2 cursor-pointer"
-              variant={editMode ? "outline" : "default"}
-            >
-              {editMode ? <LockOpen size={16} /> : <Lock size={16} />}
-            </Button>
+
+          <Button
+            onClick={() => setEditMode(!editMode)}
+            className="flex items-center gap-2 cursor-pointer"
+            variant={editMode ? "outline" : "default"}
+            style={{ width: '50px', height: '40px' }}
+          >
+            {editMode ? <LockOpen size={16} /> : <Lock size={16} />}
+          </Button>
         </div>
       </div>
 
       {/* Toggle between list and floorplan */}
-      {listView ? (
-        <div className="max-w-md mx-auto grid grid-cols-3 gap-4 my-4 justify-items-center">
+
+      <div className="max-w-4xl mx-auto my-4 px-4 min-h-[400px] flex items-center justify-center">
+      {loading ? (
+        <LoadSpinner text="Loading rooms..." />
+      ) : listView ? (
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-4 justify-items-center w-full">
           {rooms.map((room) => (
             <RoomCard
               key={room.id}
               room={{ id: room.id, name: room.name, icon: room.icon, subsections: room.subsections || [] }}
-              size={120} // smaller size for list view
+              size={cardSize}
               onClick={() => handleRoomClick(room.id, room.name)}
               onDelete={() => handleDeleteRoom(room.id)}
               onRename={(newName) => {
@@ -192,17 +196,18 @@ export default function FloorplanPage() {
           ))}
         </div>
       ) : (
-        <Floorplan gridSize={20}>
-          <RoomGrid 
-            rooms={rooms} 
-            onUpdate={handleUpdate} 
-            onDelete={handleDeleteRoom} 
-            onClick={handleRoomClick} 
+        <Floorplan gridSize={20} width={1000} height={600}>
+          <RoomGrid
+            rooms={rooms}
+            onUpdate={handleUpdate}
+            onDelete={handleDeleteRoom}
+            onClick={handleRoomClick}
             gridSize={10}
             editMode={editMode}
           />
         </Floorplan>
       )}
     </div>
+  </div>
   )
 }

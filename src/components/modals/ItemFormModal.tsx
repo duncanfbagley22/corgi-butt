@@ -3,14 +3,12 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/shadcn/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/shadcn/card"
-import * as LucideIcons from "lucide-react"
-import { X } from "lucide-react"
 import { supabase } from "@/lib/supabase/supabase"
 import type { Item } from "@/types/floorplan"
 import IconSelector from '@/components/ui/other/IconSelector'
 import * as CustomIcons from '@/components/icons/custom/task-icons'
 
-interface ItemEditModalProps {
+interface ItemFormModalProps {
   item: Item
   subsectionId: string
   isOpen: boolean
@@ -18,7 +16,7 @@ interface ItemEditModalProps {
   onSaved: (savedData: Partial<Item>) => void
 }
 
-export function ItemEditModal({ item, subsectionId, isOpen, onClose, onSaved }: ItemEditModalProps) {
+export function ItemFormModal({ item, subsectionId, isOpen, onClose, onSaved }: ItemFormModalProps) {
   const [name, setName] = useState(item.name || '')
   const [description, setDescription] = useState(item.description || "")
   const [icon, setIcon] = useState(item.icon || "")
@@ -130,9 +128,9 @@ const ICON_OPTIONS: IconOption[] = ICON_OPTIONS_RAW.map(i => ({
       className="fixed inset-0 flex items-center justify-center bg-black/50 z-[60]"
       onClick={handleBackdropClick}
     >
-      <Card className="w-full max-w-md p-6 relative bg-white dark:bg-zinc-900">
+      <Card className="md:w-full max-w-md p-6 relative bg-white dark:bg-zinc-900">
 
-        <CardHeader className="pb-4">
+        <CardHeader>
           <CardTitle className="text-2xl text-center">
             {isNewItem ? 'Create New Item' : 'Edit Item'}
           </CardTitle>

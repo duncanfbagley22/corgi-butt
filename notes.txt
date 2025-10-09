@@ -1,3 +1,18 @@
+Item Status
 
 
+Item - Can be done, soon, due, or overdue
 
+Subsections are dependent on items, and rooms on Subsections
+
+If something was marked complete today or done within 75% of the window, it's done
+Marked as low priority or 75%-85% it's soon, 85%-100% it's due, and >100% it's overdue
+
+Statuses have weights
+
+Done - 1
+Soon - .9
+Due - .5
+Overdue - .4
+
+If the weighted average is greater than .9 it's done, .75 it's soon, .6 is due, and anything else is overdue

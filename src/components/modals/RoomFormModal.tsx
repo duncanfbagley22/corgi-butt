@@ -94,7 +94,7 @@ export default function RoomFormModal({ isOpen, onClose, onAdd, onEdit, editingR
       className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
       onClick={handleBackdropClick}
     >
-      <Card className="w-full max-w-sm p-6">
+      <Card className="md:w-full max-w-sm p-6">
         <CardHeader>
           <CardTitle>{isEditMode ? 'Edit Room' : 'Add New Room'}</CardTitle>
         </CardHeader>
@@ -124,7 +124,6 @@ export default function RoomFormModal({ isOpen, onClose, onAdd, onEdit, editingR
             className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 
                        rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 
                        dark:bg-zinc-800 dark:text-white"
-            autoFocus
           />
 
           {/* Icon Selector */}

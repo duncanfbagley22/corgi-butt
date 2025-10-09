@@ -23,10 +23,12 @@ interface ItemCardProps {
   onItemClick?: (item: Item) => void
   onMarkIncomplete?: (id: string) => void
   editMode?: boolean
+  size?: number
 }
 
 export function ItemCard({
   item,
+  size=208,
   showCompletion = false,
   onRename,
   onDelete,
@@ -150,24 +152,29 @@ if (
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={handleMouseEnter}
+      style={{
+        width: typeof size === 'number' ? `${size}px` : size,
+        height: typeof size === 'number' ? `${size}px` : size,
+      }}
     >
       <div
         className={`flex flex-col items-center justify-center hover:scale-105 transform transition-transform duration-200 border rounded-2xl shadow-sm ${styleClasses} w-full h-full p-4`}
       >
         {/* Tooltip */}
-        {showTooltip && item.description && (
+        {/* {showTooltip && item.description && (
           <div
             className="absolute z-50 left-1/2 -translate-x-1/2 -top-10 bg-black text-white text-xs rounded px-2 py-1 shadow-lg whitespace-pre-line max-w-xs"
             style={{ pointerEvents: 'none' }}
           >
             {item.description}
           </div>
-        )}
+        )} */}
         {showCompletion ? (
           // Completion view
           <>
             <div className="flex flex-col items-center mb-2">
-              <h3 className="font-semibold text-center text-sm leading-tight">
+              <h3 className="font-semibold text-center text-sm leading-tight"
+              style={{ fontSize: size / 10, fontFamily: 'DM Sans, sans-serif' }}>
                 {item.name}
               </h3>
             </div>
@@ -209,12 +216,15 @@ if (
                 onChange={(e) => setName(e.target.value)}
                 onBlur={saveName}
                 onKeyDown={(e) => e.key === 'Enter' && saveName()}
-                autoFocus
               />
             ) : (
               <>
-                <IconComponent className="w-10 h-10 mb-2 text-black-500" />
-                <span className="text-lg font-semibold text-center">
+                          {/* Icon with subtle drop shadow */}
+          <div className="text-gray-800 dark:text-gray-100 mb-3 drop-shadow-md" style={{ fontSize: size / 4 }}>
+            {IconComponent ? <IconComponent size={size / 4} strokeWidth={1.5} /> : '...'}
+          </div>
+                <span className="text-lg font-semibold text-center"
+                style={{ fontSize: size / 10, fontFamily: 'DM Sans, sans-serif' }}>
                   {name}
                 </span>
               </>
@@ -224,11 +234,13 @@ if (
             {editMode && (
               <button
                 onClick={handleDelete}
-                className="absolute top-2 right-2 w-6 h-6 bg-red-300 text-white rounded-full 
-                           opacity-0 group-hover:opacity-70 hover:opacity-100 transition-opacity 
-                           flex items-center justify-center hover:bg-red-600 cursor-pointer"
-              >
-                <X size={12} />
+          className="absolute top-2 right-2 md:bg-red-500 bg-red-400 text-white rounded-full
+                     md:opacity-0 group-hover:opacity-90 hover:opacity-100 transition-all
+                     flex items-center justify-center hover:bg-red-600 cursor-pointer
+                     shadow-lg hover:scale-110 transform duration-200"
+          style={{ width: size / 6, height: size / 6 }}
+        >
+          <X size={size / 10} className="pointer-events-none" />
               </button>
             )}
           </>

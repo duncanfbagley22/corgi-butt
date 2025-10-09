@@ -132,7 +132,7 @@ export default function SubsectionFormModal({
       className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
       onClick={handleBackdropClick}
     >
-      <Card className="w-full max-w-sm p-6">
+      <Card className="md:w-full max-w-sm p-6">
         <CardHeader>
           <CardTitle>
             {mode === 'add' ? 'Add New Subsection' : 'Edit Subsection'}
@@ -162,7 +162,6 @@ export default function SubsectionFormModal({
             className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 
                        rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 
                        dark:bg-zinc-800 dark:text-white"
-            autoFocus
           />
 
           <IconSelector

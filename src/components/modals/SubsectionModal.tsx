@@ -4,20 +4,18 @@ import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase/supabase"
 import type { Subsection, Item } from "@/types/floorplan"
 import { ItemCard } from "@/components/ui/cards/ItemCard"
-import { ItemEditModal } from "@/components/modals/ItemEditModal"
+import { ItemFormModal } from "@/components/modals/ItemFormModal"
 import { ForcedCompletionModal } from "@/components/modals/ForcedCompletionModal"
 import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/shadcn/card"
 import {
-  X,
   TextSearch,
-  SquarePen,
   Plus,
-  Eye,
   Lock,
   LockOpen
 } from "lucide-react"
 import { Button } from '@/components/ui/shadcn/button'
+import { LoadSpinner } from "@/components/ui/other/LoadSpinner"
 
 interface SubsectionModalProps {
   subsection: Subsection
@@ -35,18 +33,28 @@ export default function SubsectionModal({
   const [showCompletion, setShowCompletion] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [editingItem, setEditingItem] = useState<Item | null>(null)
-  const [showItemEditModal, setShowItemEditModal] = useState(false)
-  
-  // States for forced completion modal
+  const [showItemFormModal, setShowItemFormModal] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // Forced completion modal
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [selectedItemName, setSelectedItemName] = useState<string>('')
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [])
 
   useEffect(() => {
     fetchItems()
   }, [subsection.id])
 
   const fetchItems = async () => {
+    setLoading(true)
     const { data, error } = await supabase
       .from("items")
       .select(
@@ -60,10 +68,21 @@ export default function SubsectionModal({
 
     if (error) console.error("Error fetching items:", error)
     else setItems(data || [])
+    setLoading(false)
   }
 
-  const addItem = async () => {
-    // Always open modal to create new item
+  const [cardSize, setCardSize] = useState(160)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setCardSize(window.innerWidth < 768 ? 110 : 160)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const addItem = () => {
     setEditingItem({
       id: '',
       subsection_id: subsection.id,
@@ -74,35 +93,38 @@ export default function SubsectionModal({
       description: '',
       icon: '',
     } as Item)
-    setShowItemEditModal(true)
+    setShowItemFormModal(true)
   }
 
   const deleteItem = async (id: string) => {
+    setLoading(true)
     await supabase.from("items").delete().eq("id", id)
-    fetchItems()
+    await fetchItems()
+    setLoading(false)
   }
 
   const renameItem = async (id: string, newName: string) => {
+    setLoading(true)
     await supabase.from("items").update({ name: newName }).eq("id", id)
-    fetchItems()
+    await fetchItems()
+    setLoading(false)
   }
 
   const handleItemSaved = (savedData: Partial<Item>) => {
     if (editingItem?.id) {
-      // Update existing item in local state immediately
       setItems(prev => prev.map(item => 
         item.id === editingItem.id 
           ? { ...item, ...savedData }
           : item
       ))
     } else {
-      // For new items, just refetch since we don't have the new ID
       fetchItems()
     }
   }
 
   const markCompleted = async (id: string) => {
-    if (!user || editMode) return // Don't mark completed in edit mode
+    if (!user || editMode) return
+    setLoading(true)
     const now = new Date().toISOString()
     await supabase
       .from("items")
@@ -118,12 +140,12 @@ export default function SubsectionModal({
     )
     await fetchItems()
     refresh()
+    setLoading(false)
   }
 
   const markIncomplete = async (id: string) => {
     const item = items.find(i => i.id === id)
     if (!item) return
-    
     setSelectedItemId(id)
     setSelectedItemName(item.name)
     setModalOpen(true)
@@ -131,7 +153,7 @@ export default function SubsectionModal({
 
   const handleStatusUpdate = async (status: string) => {
     if (!selectedItemId) return
-    
+    setLoading(true)
     await supabase
       .from("items")
       .update({ 
@@ -142,117 +164,121 @@ export default function SubsectionModal({
       })
       .eq("id", selectedItemId)
     
-    setItems((prev) => {
-      const updated = prev.map((i) =>
+    setItems((prev) =>
+      prev.map((i) =>
         i.id === selectedItemId
           ? { ...i, last_completed: null, last_completed_by_user: undefined }
           : i
       )
-      return updated
-    })
+    )
     await fetchItems()
     refresh()
+    setLoading(false)
   }
 
   const handleItemClick = (item: Item) => {
     if (editMode) {
       setEditingItem(item)
-      setShowItemEditModal(true)
+      setShowItemFormModal(true)
     } else {
       markCompleted(item.id)
     }
+  }
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose()
   }
 
   if (!subsection) return null
 
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-        <Card className="w-full max-w-2xl p-6 relative pb-8">
-          {/* Close Button - isolated top right */}
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition cursor-pointer"
-            aria-label="Close modal"
-          >
-            <X size={22} />
-          </button>
-
-          <CardHeader className="flex flex-row items-center justify-between mb-4">
-            {/* Left side: Title */}
-            <CardTitle className="text-4xl">{subsection.name}</CardTitle>
-
-            {/* Right side: Action Icons */}
-            <div className="flex gap-2">
-              <Button
-                title="Add item"
-                className={`flex items-center cursor-pointer transition`}
-                onClick={addItem}
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black/40 z-50"
+        onClick={handleBackdropClick}
+      >
+        <Card className="md:w-full max-w-2xl relative h-130 md:h-170 mb-4">
+          <CardHeader className="mb-0 pb-0 sticky z-10 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle
+                className="font-bold flex-shrink"
+                style={{ fontFamily: 'DM Sans, sans-serif',
+                  fontSize: 'clamp(1rem, 2.5vw, 1.5rem)'
+                }}
+                title={subsection.name}
               >
-                <Plus size={16} />
-              </Button>
-              <Button
-                title={showCompletion ? "Hide details" : "Show details"}
-                className={`flex items-center cursor-pointer transition`}
-                variant= {showCompletion ? "outline" : "default"}
-                onClick={() => setShowCompletion(!showCompletion)}
-              >
-                <TextSearch size={16} />
-              </Button>
+                {subsection.name}
+              </CardTitle>
 
-              <Button
-                title={editMode ? "Exit edit mode" : "Edit items"}
-                className={`flex items-center cursor-pointer transition`}
-                variant= {editMode ? "outline" : "default"}
-                onClick={() => setEditMode(!editMode)}
-              >
-                {editMode ? (
-                  <LockOpen size={16} />
-                ) : (
-                  <Lock size={16} />
-                )}
-              </Button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button title="Add item" size="icon" onClick={addItem}>
+                  <Plus size={18} />
+                </Button>
+
+                <Button
+                  title={showCompletion ? "Hide details" : "Show details"}
+                  size="icon"
+                  variant={showCompletion ? "outline" : "default"}
+                  onClick={() => setShowCompletion(!showCompletion)}
+                >
+                  <TextSearch size={18} />
+                </Button>
+
+                <Button
+                  title={editMode ? "Exit edit mode" : "Edit items"}
+                  size="icon"
+                  variant={editMode ? "outline" : "default"}
+                  onClick={() => setEditMode(!editMode)}
+                >
+                  {editMode ? <LockOpen size={18} /> : <Lock size={18} />}
+                </Button>
+              </div>
             </div>
           </CardHeader>
 
-        <CardContent className="grid grid-cols-2 gap-4 place-items-center">
-          {items.length > 0 ? (
-            items.map((item) => (
-              <ItemCard
-                key={item.id}
-                item={item}
-                showCompletion={showCompletion}
-                onRename={renameItem}
-                onDelete={deleteItem}
-                onItemClick={handleItemClick}
-                onMarkIncomplete={markIncomplete}
-                editMode={editMode}
-              />
-            ))
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400 text-center col-span-2">
-              No items yet. Add one below.
-            </p>
-          )}
-        </CardContent>
+          <CardContent className="grid md:grid-cols-3 grid-cols-2 gap-4 place-items-center pt-2 pb-2 overflow-y-auto max-h-[calc(90vh-4rem)]">
+            {items.length > 0 ? (
+              items.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  showCompletion={showCompletion}
+                  onRename={renameItem}
+                  onDelete={deleteItem}
+                  onItemClick={handleItemClick}
+                  onMarkIncomplete={markIncomplete}
+                  editMode={editMode}
+                  size={cardSize}
+                />
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-center col-span-full py-8">
+                No items yet. Add one above.
+              </p>
+            )}
+          </CardContent>
         </Card>
       </div>
 
-      {/* Item Edit Modal */}
-      {showItemEditModal && editingItem && (
-        <ItemEditModal
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <LoadSpinner size="lg" text="Loading items..." />
+        </div>
+      )}
+
+      {showItemFormModal && editingItem && (
+        <ItemFormModal
           item={editingItem}
           subsectionId={subsection.id}
-          isOpen={showItemEditModal}
+          isOpen={showItemFormModal}
           onClose={() => {
-            setShowItemEditModal(false)
+            setShowItemFormModal(false)
             setEditingItem(null)
           }}
           onSaved={handleItemSaved}
         />
       )}
 
-      {/* Forced Completion Modal */}
       <ForcedCompletionModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

@@ -5,7 +5,7 @@ import * as LucideIcons from 'lucide-react'
 import { Circle, Triangle, Diamond, Hexagon } from 'lucide-react'
 import { X, Info } from 'lucide-react'
 import { getRoomStatus, type OverallStatus } from '@/utils/itemstatus'
-import type { RoomData, Subsection } from '@/types/floorplan'
+import type { Subsection } from '@/types/floorplan'
 import * as CustomIcons from '@/components/icons/custom/room-icons'
 
 interface RoomCardProps {
@@ -44,13 +44,6 @@ const STATUS_STYLES: Record<OverallStatus, { bg: string; border: string; bgDark:
     border: 'border-red-500',
     bgDark: 'dark:from-red-950 dark:to-rose-900'
   }
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  'done': 'Done',
-  'soon': 'Soon',
-  'due': 'Due',
-  'overdue': 'Overdue'
 }
 
 export default function RoomCard({
@@ -132,17 +125,10 @@ export default function RoomCard({
                 e.stopPropagation()
                 setEditing(true)
               }}
-              style={{ fontSize: size / 10 }}
+              style={{ fontSize: size / 9, fontFamily: 'DM Sans, sans-serif' }}
             >
               {room.name}
             </h2>
-          )}
-
-          {/* Subtle status text */}
-          {statusInfo.totalItems > 0 && (
-            <div className="mt-2 text-gray-600 dark:text-gray-300 font-medium opacity-80" 
-                 style={{ fontSize: size / 16 }}>
-            </div>
           )}
         </>
       ) : (
@@ -243,8 +229,8 @@ export default function RoomCard({
             e.preventDefault()
             if (window.confirm(`Delete "${room.name}"?`)) onDelete()
           }}
-          className="absolute top-2 right-2 bg-red-500 text-white rounded-full
-                     opacity-0 group-hover:opacity-90 hover:opacity-100 transition-all
+          className="absolute top-2 right-2 md:bg-red-500 bg-red-400 text-white rounded-full
+                     md:opacity-0 group-hover:opacity-90 hover:opacity-100 transition-all
                      flex items-center justify-center hover:bg-red-600 cursor-pointer
                      shadow-lg hover:scale-110 transform duration-200"
           style={{ width: size / 6, height: size / 6 }}

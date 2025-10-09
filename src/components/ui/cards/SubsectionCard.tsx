@@ -131,9 +131,8 @@ export default function SubsectionCard({
               onClick={(e) => e.stopPropagation()}
               className="text-center border-2 border-gray-400 rounded-lg px-2 py-1 
                          bg-white/80 dark:bg-zinc-700/80 dark:text-white 
-                         focus:outline-none focus:ring-2 focus:ring-purple-500 backdrop-blur-sm"
-              style={{ fontSize: size / 10 }}
-              autoFocus
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-sm"
+              style={{ fontSize: size / 10, fontFamily: 'DM Sans, sans-serif' }}
             />
           ) : (
             <h2
@@ -142,7 +141,7 @@ export default function SubsectionCard({
                 e.stopPropagation()
                 setEditing(true)
               }}
-              style={{ fontSize: size / 10 }}
+              style={{ fontSize: size / 10, fontFamily: 'DM Sans, sans-serif' }}
             >
               {subsection.name}
             </h2>
@@ -253,8 +252,8 @@ export default function SubsectionCard({
             e.preventDefault()
             if (window.confirm(`Delete "${subsection.name}"?`)) onDelete()
           }}
-          className="absolute top-2 right-2 bg-red-500 text-white rounded-full
-                     opacity-0 group-hover:opacity-90 hover:opacity-100 transition-all
+          className="absolute top-2 right-2 md:bg-red-500 bg-red-400 text-white rounded-full
+                     md:opacity-0 group-hover:opacity-90 hover:opacity-100 transition-all
                      flex items-center justify-center hover:bg-red-600 cursor-pointer
                      shadow-lg hover:scale-110 transform duration-200"
           style={{ width: size / 6, height: size / 6 }}

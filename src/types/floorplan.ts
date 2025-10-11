@@ -1,4 +1,6 @@
 // src/types/floorplan.ts
+import * as CustomIcons from '@/components/icons/custom/room-icons'
+
 export interface Item {
   id: string
   name: string
@@ -36,4 +38,9 @@ export type RoomData = {
   width_percent: number
   height_percent: number
   subsections: Subsection[]
+}
+
+export type IconOption = {
+  name: string
+  component: keyof typeof CustomIcons
 }

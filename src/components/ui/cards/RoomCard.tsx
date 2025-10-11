@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import * as LucideIcons from 'lucide-react'
 import { Circle, Triangle, Diamond, Hexagon } from 'lucide-react'
 import { X, Info } from 'lucide-react'
 import { getRoomStatus, type OverallStatus } from '@/utils/itemstatus'
 import type { Subsection } from '@/types/floorplan'
-import * as CustomIcons from '@/components/icons/custom/room-icons'
+import { getIconComponent } from '@/lib/getIconComponent'
 
 interface RoomCardProps {
   room: {
@@ -63,10 +62,7 @@ export default function RoomCard({
     setEditing(false)
   }
 
-  const IconComponent = room.icon
-    ? (CustomIcons[room.icon as keyof typeof CustomIcons] as any) || 
-      (LucideIcons[room.icon as keyof typeof LucideIcons] as any)
-    : null
+  const IconComponent = room.icon ? getIconComponent(room.icon, 'room') : null
 
   const statusInfo = useMemo(() => {
     return getRoomStatus(room.subsections || [])

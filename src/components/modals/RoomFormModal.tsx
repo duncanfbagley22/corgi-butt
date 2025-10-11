@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import IconSelector from '@/components/ui/other/IconSelector'
-import * as LucideIcons from 'lucide-react'
 import { Button } from '@/components/ui/shadcn/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/shadcn/card'
 import * as CustomIcons from '@/components/icons/custom/room-icons'
+import type { IconOption } from '@/types/floorplan'
 
 interface RoomFormModalProps {
   isOpen: boolean
@@ -30,10 +30,6 @@ const ICON_OPTIONS_RAW = [
   { name: 'Toilet', component: 'Toilet' }
 ] as const
 
-type IconOption = {
-  name: string
-  component: keyof typeof CustomIcons
-}
 const ICON_OPTIONS: IconOption[] = ICON_OPTIONS_RAW.map(i => ({
   name: i.name,
   component: i.component,
@@ -85,9 +81,9 @@ export default function RoomFormModal({ isOpen, onClose, onAdd, onEdit, editingR
   }
 
   // Get the selected icon component for preview
-  const IconPreviewComponent = selectedIcon
-    ? (CustomIcons[selectedIcon as keyof typeof CustomIcons] as any)
-    : null
+const IconPreviewComponent = selectedIcon
+  ? (CustomIcons[selectedIcon as keyof typeof CustomIcons] as React.ComponentType<{ size?: number; className?: string }>)
+  : null
 
   return (
     <div 
@@ -132,7 +128,6 @@ export default function RoomFormModal({ isOpen, onClose, onAdd, onEdit, editingR
             selectedIcon={selectedIcon}
             onSelect={setSelectedIcon}
             customIconFolder="room"
-            iconSource="custom"
           />
 
           <div className="flex gap-2 justify-end">

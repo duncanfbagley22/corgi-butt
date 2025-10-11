@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Rnd } from 'react-rnd'
-import { LucideIcon, X} from 'lucide-react'
-import * as CustomIcons from '@/components/icons/custom/room-icons'
+import { X } from 'lucide-react'
 import { getRoomStatus } from '@/utils/itemstatus'
 import type { Subsection } from '@/types/floorplan'
+import { getIconComponent } from '@/lib/getIconComponent'
 
 interface RoomProps {
   id: string
   name: string
-  icon?: LucideIcon
+  icon?: string          // <-- now a string like in RoomCard
   size?: string
   leftPercent: number
   topPercent: number
@@ -25,32 +25,16 @@ interface RoomProps {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; border: string; bgDark: string }> = {
-  'done': { 
-    bg: 'bg-gradient-to-br from-green-50 to-emerald-100', 
-    border: 'border-green-400',
-    bgDark: 'dark:from-green-950 dark:to-emerald-900'
-  },
-  'soon': { 
-    bg: 'bg-gradient-to-br from-yellow-50 to-amber-100', 
-    border: 'border-yellow-400',
-    bgDark: 'dark:from-yellow-950 dark:to-amber-900'
-  },
-  'due': { 
-    bg: 'bg-gradient-to-br from-orange-50 to-red-100', 
-    border: 'border-orange-400',
-    bgDark: 'dark:from-orange-950 dark:to-red-900'
-  },
-  'overdue': { 
-    bg: 'bg-gradient-to-br from-red-50 to-rose-100', 
-    border: 'border-red-500',
-    bgDark: 'dark:from-red-950 dark:to-rose-900'
-  }
+  'done': { bg: 'bg-gradient-to-br from-green-50 to-emerald-100', border: 'border-green-400', bgDark: 'dark:from-green-950 dark:to-emerald-900' },
+  'soon': { bg: 'bg-gradient-to-br from-yellow-50 to-amber-100', border: 'border-yellow-400', bgDark: 'dark:from-yellow-950 dark:to-amber-900' },
+  'due': { bg: 'bg-gradient-to-br from-orange-50 to-red-100', border: 'border-orange-400', bgDark: 'dark:from-orange-950 dark:to-red-900' },
+  'overdue': { bg: 'bg-gradient-to-br from-red-50 to-rose-100', border: 'border-red-500', bgDark: 'dark:from-red-950 dark:to-rose-900' }
 }
 
 export default function Room({
   id,
   name,
-  icon: IconComponent,
+  icon,
   leftPercent,
   topPercent,
   widthPercent,
@@ -68,25 +52,26 @@ export default function Room({
   const containerRef = useRef<HTMLElement | null>(null)
   const roomRef = useRef<HTMLDivElement>(null)
 
-  const statusInfo = useMemo(() => {
-    return getRoomStatus(subsections)
-  }, [subsections])
+  const statusInfo = useMemo(() => getRoomStatus(subsections), [subsections])
 
+  // Resolve string icon to React component
+  const IconComponent = icon ? getIconComponent(icon, 'room') : undefined
+
+  // Container resize observer
   useEffect(() => {
     const container = document.querySelector('.floorplan-container') as HTMLElement
     if (container) {
       containerRef.current = container
       setContainerSize({ width: container.clientWidth, height: container.clientHeight })
-      
       const resizeObserver = new ResizeObserver(() => {
         setContainerSize({ width: container.clientWidth, height: container.clientHeight })
       })
       resizeObserver.observe(container)
-      
       return () => resizeObserver.disconnect()
     }
   }, [])
 
+  // Measure room size
   useEffect(() => {
     if (roomRef.current) {
       setRoomSize({
@@ -111,7 +96,7 @@ export default function Room({
     ? STATUS_STYLES[statusInfo.overallStatus]
     : { bg: 'bg-gray-200', border: 'border-gray-300', bgDark: 'dark:bg-zinc-800' }
 
-  // Calculate dynamic sizes based on room dimensions
+  // Dynamic sizing
   const minDimension = Math.min(roomSize.width, roomSize.height)
   const iconSize = Math.max(24, Math.min(minDimension / 4, 64))
   const fontSize = Math.max(12, Math.min(minDimension / 8, 20))
@@ -124,14 +109,8 @@ export default function Room({
       size={{ width: `${widthPercent}%`, height: `${heightPercent}%` }}
       position={pixelPosition}
       enableResizing={editMode ? {
-        top: true,
-        right: true,
-        bottom: true,
-        left: true,
-        topRight: true,
-        bottomRight: true,
-        bottomLeft: true,
-        topLeft: true,
+        top: true, right: true, bottom: true, left: true,
+        topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
       } : false}
       disableDragging={!editMode}
       dragGrid={editMode ? [gridSize, gridSize] : undefined}
@@ -167,7 +146,7 @@ export default function Room({
       >
         {IconComponent && (
           <div className="text-gray-800 dark:text-gray-100 mb-2 drop-shadow-md">
-            <IconComponent style={{ width: iconSize, height: iconSize }}  size={300} strokeWidth={1.5} />
+            <IconComponent size={iconSize} strokeWidth={1.5} />
           </div>
         )}
 
@@ -183,9 +162,7 @@ export default function Room({
             onClick={(e) => {
               e.stopPropagation()
               e.preventDefault()
-              if (window.confirm(`Delete room "${name}"?`)) {
-                onDelete(id)
-              }
+              if (window.confirm(`Delete room "${name}"?`)) onDelete(id)
             }}
             className="absolute bg-red-500 text-white rounded-full 
                        opacity-0 group-hover:opacity-90 hover:opacity-100 transition-all

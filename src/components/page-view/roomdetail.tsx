@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, Lock, LockOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import SubsectionCard from '@/components/ui/cards/SubsectionCard'
@@ -8,8 +8,6 @@ import SubsectionModal from '@/components/modals/SubsectionModal'
 import type { Subsection } from '@/types/floorplan'
 import { Button } from '@/components/ui/shadcn/button'
 import GeometricBackground from '@/components/ui/other/background/Background'
-import * as CustomIcons from '@/components/icons/custom/room-icons'
-import * as LucideIcons from 'lucide-react'
 import SubsectionFormModal from '@/components/modals/SubsectionFormModal'
 import LoadSpinner from '@/components/ui/other/LoadSpinner'
 
@@ -21,14 +19,12 @@ interface RoomDetailProps {
 
 export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps) {
   const [subsections, setSubsections] = useState<Subsection[]>([])
-  const [editingName, setEditingName] = useState(false)
-  const [name, setName] = useState(roomName)
   const [selectedSubsection, setSelectedSubsection] = useState<Subsection | null>(null)
   const [editingSubsection, setEditingSubsection] = useState<Subsection | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [cardSize, setCardSize] = useState(160)
-  const [loading, setLoading] = useState(true) // 🌀 new loading state
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const handleResize = () => {
@@ -40,7 +36,7 @@ export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps
   }, [])
 
   // --- Fetch Room Data ---
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true)
     const { data: subsectionsData, error: subError } = await supabase
       .from('subsections')
@@ -54,7 +50,7 @@ export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps
     }
 
     const subsectionsWithItems: Subsection[] = await Promise.all(
-      (subsectionsData || []).map(async (sub: any) => {
+      (subsectionsData || []).map(async (sub) => {
         const { data: itemsData, error: itemsError } = await supabase
           .from('items')
           .select('id, icon, name, last_completed, frequency, forced_marked_incomplete, forced_completion_status')
@@ -67,11 +63,11 @@ export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps
 
     setSubsections(subsectionsWithItems)
     setLoading(false)
-  }
+  }, [roomId])
 
   useEffect(() => {
     fetchData()
-  }, [roomId])
+  }, [fetchData])
 
   // ---- Subsection CRUD ----
   const addSubsection = async (subName: string, icon: string) => {
@@ -128,9 +124,8 @@ export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps
               fontSize: 'clamp(0.875rem, 3vw, 1.5rem)',
               maxWidth: '100%',
             }}
-            onClick={() => setEditingName(true)}
           >
-            {name}
+            {roomName}
           </h1>
 
           <div className="flex gap-2 justify-end">
@@ -161,11 +156,6 @@ export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps
           ) : (
             <div className="grid grid-cols-3 md:grid-cols-5 gap-4 justify-items-center w-full">
               {subsections.map((sub) => {
-                const IconComponent =
-                  sub.icon
-                    ? (CustomIcons[sub.icon as keyof typeof CustomIcons] as any) ||
-                      (LucideIcons[sub.icon as keyof typeof LucideIcons] as any)
-                    : null
 
                 return (
                   <SubsectionCard

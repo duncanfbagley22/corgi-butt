@@ -19,7 +19,7 @@ interface ItemFormModalProps {
 export function ItemFormModal({ item, subsectionId, isOpen, onClose, onSaved }: ItemFormModalProps) {
   const [name, setName] = useState(item.name || '')
   const [description, setDescription] = useState(item.description || "")
-  const [icon, setIcon] = useState(item.icon || "")
+  // const [icon, setIcon] = useState(item.icon || "")
   const [frequency, setFrequency] = useState(item.frequency || 'weekly')
   const [saving, setSaving] = useState(false)
   const [selectedIcon, setSelectedIcon] = useState<string>('Arrange')
@@ -27,7 +27,7 @@ export function ItemFormModal({ item, subsectionId, isOpen, onClose, onSaved }: 
   useEffect(() => {
     setName(item.name || '')
     setDescription(item.description || '')
-    setIcon(item.icon || '')
+    // setIcon(item.icon || '')
     setFrequency(item.frequency || 'weekly')
   }, [item])
 
@@ -110,9 +110,10 @@ const ICON_OPTIONS: IconOption[] = ICON_OPTIONS_RAW.map(i => ({
 }))
 
   // Get the selected icon component for preview
-  const IconPreviewComponent = selectedIcon
-    ? (CustomIcons[selectedIcon as keyof typeof CustomIcons] as any)
-    : null
+const IconPreviewComponent = selectedIcon
+  ? (CustomIcons[selectedIcon as keyof typeof CustomIcons] as React.ComponentType<{ size?: number; className?: string }>)
+  : null
+
 
   const isNewItem = !item.id
 
@@ -188,7 +189,6 @@ const ICON_OPTIONS: IconOption[] = ICON_OPTIONS_RAW.map(i => ({
             selectedIcon={selectedIcon}
             onSelect={setSelectedIcon}
             customIconFolder="task"
-            iconSource="custom"
           />
 
           {/* Frequency Select */}

@@ -5,13 +5,7 @@ import IconSelector from '@/components/ui/other/IconSelector'
 import { Button } from '@/components/ui/shadcn/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/shadcn/card'
 import * as CustomIcons from '@/components/icons/custom/area-icons'
-
-interface Subsection {
-  id: string
-  name: string
-  icon?: string
-  items?: any[]
-}
+import type { Subsection } from '@/types/floorplan'
 
 interface SubsectionFormModalProps {
   isOpen: boolean
@@ -19,6 +13,11 @@ interface SubsectionFormModalProps {
   onSubmit: (name: string, icon: string) => void
   subsection?: Subsection | null
   mode: 'add' | 'edit'
+}
+
+type IconOption = {
+  name: string
+  component: keyof typeof CustomIcons
 }
 
 const ICON_OPTIONS_RAW = [
@@ -64,11 +63,6 @@ const ICON_OPTIONS_RAW = [
   { name: 'Washer', component: 'Washer' },
   { name: 'Window', component: 'Window' },
 ] as const
-
-type IconOption = {
-  name: string
-  component: keyof typeof CustomIcons
-}
 
 const ICON_OPTIONS: IconOption[] = ICON_OPTIONS_RAW.map(i => ({
   name: i.name,
@@ -123,9 +117,9 @@ export default function SubsectionFormModal({
     }
   }
 
-  const IconPreviewComponent = selectedIcon
-    ? (CustomIcons[selectedIcon as keyof typeof CustomIcons] as any)
-    : null
+const IconPreviewComponent = selectedIcon
+  ? (CustomIcons[selectedIcon as keyof typeof CustomIcons] as React.ComponentType<{ size?: number; className?: string }>)
+  : null
 
   return (
     <div 
@@ -169,7 +163,6 @@ export default function SubsectionFormModal({
             selectedIcon={selectedIcon}
             onSelect={setSelectedIcon}
             customIconFolder="area"
-            iconSource="custom"
           />
 
           <div className="flex gap-2 justify-end">

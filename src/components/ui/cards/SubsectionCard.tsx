@@ -1,36 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import * as LucideIcons from 'lucide-react'
 import { X, Info, Circle, Triangle, Diamond, Hexagon } from 'lucide-react'
 import { getSubsectionStatus, type OverallStatus } from '@/utils/itemstatus'
-import * as CustomIcons from '@/components/icons/custom/area-icons'
-
-interface Item {
-  id: string
-  name: string
-  icon?: string
-  description?: string
-  frequency: string
-  last_completed_by?: string
-  last_completed?: string | null 
-  last_completed_by_user?: {
-    id: string
-    display_name?: string
-    full_name: string
-  }
-  forced_completion_status?: string
-  forced_marked_incomplete?: boolean
-  subsection_id?: string
-}
-
-interface Subsection {
-  id: string
-  name: string
-  icon?: string
-  items: Item[]
-  room_id?: string
-}
+import type { Subsection } from '@/types/floorplan'
+import { getIconComponent } from '@/lib/getIconComponent'
 
 interface SubsectionCardProps {
   subsection: Subsection
@@ -82,10 +56,7 @@ export default function SubsectionCard({
     setEditing(false)
   }
 
-  const IconComponent = subsection.icon
-    ? (CustomIcons[subsection.icon as keyof typeof CustomIcons] as any) || 
-      (LucideIcons[subsection.icon as keyof typeof LucideIcons] as any)
-    : null
+  const IconComponent = subsection.icon ? getIconComponent(subsection.icon, 'area') : null
 
   const statusInfo = useMemo(() => {
     return getSubsectionStatus(subsection.items)

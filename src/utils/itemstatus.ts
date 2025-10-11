@@ -1,4 +1,5 @@
 // Status calculation utilities for items, subsections, and rooms
+import type { Item, Subsection } from '@/types/floorplan'
 
 export type ItemStatus = "done" | "soon" | "due" | "overdue"
 
@@ -97,7 +98,7 @@ function getOverallStatusFromScore(score: number): OverallStatus {
 }
 
 // Helper to calculate status for a collection of items
-function calculateStatusFromItems(items: any[]): StatusResult {
+function calculateStatusFromItems(items: Item[]): StatusResult {
   // Initialize counts
   const statusCounts: Record<ItemStatus, number> = {
     'done': 0,
@@ -157,12 +158,12 @@ function calculateStatusFromItems(items: any[]): StatusResult {
 }
 
 // Get subsection status
-export function getSubsectionStatus(items: any[]): StatusResult {
+export function getSubsectionStatus(items: Item[]): StatusResult {
   return calculateStatusFromItems(items)
 }
 
 // Get room status (aggregates all items from all subsections)
-export function getRoomStatus(subsections: any[]): StatusResult {
+export function getRoomStatus(subsections: Subsection[]): StatusResult {
   // Flatten all items from all subsections
   const allItems = subsections.flatMap(subsection => subsection.items || [])
   return calculateStatusFromItems(allItems)

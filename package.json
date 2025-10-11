@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "homepage": "https://duncanfbagley22.github.io/corgi-butt",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",

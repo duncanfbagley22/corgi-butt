@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase/supabase"
 import type { Subsection, Item } from "@/types/floorplan"
 import { ItemCard } from "@/components/ui/cards/ItemCard"
@@ -41,6 +41,7 @@ export default function SubsectionModal({
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [selectedItemName, setSelectedItemName] = useState<string>('')
 
+  // Lock background scroll while modal is open
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = "hidden"
@@ -49,11 +50,8 @@ export default function SubsectionModal({
     }
   }, [])
 
-  useEffect(() => {
-    fetchItems()
-  }, [subsection.id])
-
-  const fetchItems = async () => {
+  // Fetch items function wrapped with useCallback
+  const fetchItems = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from("items")
@@ -69,7 +67,12 @@ export default function SubsectionModal({
     if (error) console.error("Error fetching items:", error)
     else setItems(data || [])
     setLoading(false)
-  }
+  }, [subsection.id])
+
+  // Call fetchItems when modal opens or subsection changes
+  useEffect(() => {
+    fetchItems()
+  }, [fetchItems])
 
   const [cardSize, setCardSize] = useState(160)
 

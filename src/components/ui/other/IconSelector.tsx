@@ -1,17 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import * as LucideIcons from 'lucide-react'
-import * as RoomIcons from '@/components/icons/custom/room-icons'
-import * as AreaIcons from '@/components/icons/custom/area-icons'
-import * as TaskIcons from '@/components/icons/custom/task-icons'
-
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-
-interface IconOption {
-  name: string
-  component: string
-}
+import type { IconOption } from '@/types/floorplan'
+import { getIconComponent } from '@/lib/getIconComponent'
 
 type CustomIconFolder = 'room' | 'area' | 'task'
 
@@ -40,18 +32,6 @@ export default function IconSelector({
     onSelect(iconName)
   }
 
-  const getCustomIconSet = () => {
-    switch (customIconFolder) {
-      case 'area':
-        return AreaIcons
-      case 'task':
-        return TaskIcons
-      case 'room':
-      default:
-        return RoomIcons
-    }
-  }
-
   const filteredIcons = allowedIcons
     ? icons.filter(icon => allowedIcons.includes(icon.name))
     : icons
@@ -65,8 +45,8 @@ export default function IconSelector({
     <div className="flex flex-col items-center gap-2">
       <div className={`grid gap-2`} style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
         {pageIcons.map(({ name, component }) => {
-          const CustomIconSet = getCustomIconSet()
-          const IconComponent = (CustomIconSet as any)[component] || (LucideIcons as any)[component]
+          // Resolve the icon dynamically using getIconComponent
+          const IconComponent = getIconComponent(component, customIconFolder)
           const isSelected = current === name
 
           return (

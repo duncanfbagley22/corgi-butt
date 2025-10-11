@@ -2,11 +2,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import * as LucideIcons from 'lucide-react'
 import { Calendar, CircleUserRound, Clock, X } from 'lucide-react'
 import type { Item } from '@/types/floorplan'
 import { getItemStatus } from '@/utils/itemstatus'
-import * as CustomIcons from '@/components/icons/custom/task-icons'
+import { getIconComponent } from '@/lib/getIconComponent'
 
 const statusStyles: Record<string, string> = {
   "done": "border-green-500 border-4 bg-green-50 dark:bg-green-900/20",
@@ -40,31 +39,7 @@ export function ItemCard({
   const [name, setName] = useState(item.name)
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [isLongPressing, setIsLongPressing] = useState(false)
-  const [showTooltip, setShowTooltip] = useState(false)
-  const tooltipTimerRef = useRef<NodeJS.Timeout | null>(null)
   // Tooltip handlers
-  
-  const handleMouseEnter = () => {
-    if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current)
-    tooltipTimerRef.current = setTimeout(() => {
-      setShowTooltip(true)
-    }, 600)
-  }
-
-  const handleMouseLeave = () => {
-    // Tooltip hide
-    if (tooltipTimerRef.current) {
-      clearTimeout(tooltipTimerRef.current)
-      tooltipTimerRef.current = null
-    }
-    setShowTooltip(false)
-    // Long press logic
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-      longPressTimerRef.current = null
-    }
-    setTimeout(() => setIsLongPressing(false), 100)
-  }
 
   useEffect(() => {
     setName(item.name)
@@ -111,10 +86,7 @@ export function ItemCard({
     }
   }
 
-  const IconComponent = item.icon
-    ? (CustomIcons[item.icon as keyof typeof CustomIcons] as any) || 
-      (LucideIcons[item.icon as keyof typeof LucideIcons] as any)
-    : null
+  const IconComponent = item.icon ? getIconComponent(item.icon, 'task') : null
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Never"
@@ -150,8 +122,6 @@ if (
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
-      onMouseEnter={handleMouseEnter}
       style={{
         width: typeof size === 'number' ? `${size}px` : size,
         height: typeof size === 'number' ? `${size}px` : size,
@@ -160,15 +130,6 @@ if (
       <div
         className={`flex flex-col items-center justify-center hover:scale-105 transform transition-transform duration-200 border rounded-2xl shadow-sm ${styleClasses} w-full h-full p-4`}
       >
-        {/* Tooltip */}
-        {/* {showTooltip && item.description && (
-          <div
-            className="absolute z-50 left-1/2 -translate-x-1/2 -top-10 bg-black text-white text-xs rounded px-2 py-1 shadow-lg whitespace-pre-line max-w-xs"
-            style={{ pointerEvents: 'none' }}
-          >
-            {item.description}
-          </div>
-        )} */}
         {showCompletion ? (
           // Completion view
           <>

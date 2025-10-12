@@ -1,5 +1,13 @@
 // src/types/floorplan.ts
-import * as CustomIcons from '@/components/icons/custom/room-icons'
+import * as RoomIcons from '@/components/icons/custom/room-icons'
+import * as AreaIcons from '@/components/icons/custom/area-icons'
+import * as TaskIcons from '@/components/icons/custom/task-icons'
+
+export const CustomIcons = {
+  ...RoomIcons,
+  ...AreaIcons,
+  ...TaskIcons,
+}
 
 export interface Item {
   id: string

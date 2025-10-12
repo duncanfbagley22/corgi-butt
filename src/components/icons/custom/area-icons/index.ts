@@ -31,7 +31,7 @@ export { default as Shelves } from "./Shelves";
 export { default as Shoes } from "./Shoes";
 export { default as Shower } from "./Shower";
 export { default as Sink } from "./Sink";
-export { default as Tv } from "./Tv";
+export { default as TV } from "./TV";
 export { default as Table } from "./Table";
 export { default as Toilet } from "./Toilet";
 export { default as TrashCan } from "./TrashCan";

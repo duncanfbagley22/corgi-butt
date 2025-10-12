@@ -133,7 +133,7 @@ export default function FloorplanPage() {
   }
 
   return (
-    <div>
+    <div className="touch-none" style={{ touchAction: 'pan-y' }}>
       <Background />
 
       <RoomFormModal

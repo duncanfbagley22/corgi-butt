@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
   if (!mounted || loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen overflow-hidden">
         <p className="text-lg text-gray-400">Logging in...</p>
       </div>
     )
@@ -26,7 +26,7 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen overflow-hidden">
         <p className="text-lg text-gray-400">
           You must be logged in to view this page.
         </p>
@@ -35,12 +35,12 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="relative flex items-center justify-center h-screen">
+    <div className="relative flex items-center justify-center h-screen overflow-hidden">
       <GeometricBackground />
 
-      <Card className="w-full max-w-md shadow-lg z-10">
+      <Card className="md:w-full w-90 max-w-sm shadow-lg z-10 md:-mt-20 -mt-40">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Corgi Butt</CardTitle>
+          <CardTitle className="text-2xl text-center -mb-4">Corgi Butt</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <p className="text-xl">

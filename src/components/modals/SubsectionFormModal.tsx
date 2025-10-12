@@ -57,7 +57,7 @@ const ICON_OPTIONS_RAW = [
   { name: 'Table', component: 'Table' },
   { name: 'Toilet', component: 'Toilet' },
   { name: 'TrashCan', component: 'TrashCan' },
-  { name: 'TV', component: 'Tv' },
+  { name: 'TV', component: 'TV' },
   { name: 'VideoGame', component: 'VideoGame' },
   { name: 'Wall', component: 'Wall' },
   { name: 'Washer', component: 'Washer' },

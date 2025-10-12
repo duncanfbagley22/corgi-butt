@@ -59,6 +59,25 @@ export function ItemCard({
     }
   }
 
+  const handleTouchStart = () => {
+    if (!item.last_completed || editMode || editing || showCompletion) return
+    setIsLongPressing(false)
+    longPressTimerRef.current = setTimeout(() => {
+      setIsLongPressing(true)
+      if (onMarkIncomplete) {
+        onMarkIncomplete(item.id)
+      }
+    }, 800)
+  }
+
+  const handleTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+    setTimeout(() => setIsLongPressing(false), 100)
+  }
+
   const handleMouseDown = () => {
     if (!item.last_completed || editMode || editing || showCompletion) return
     
@@ -122,9 +141,14 @@ if (
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       style={{
         width: typeof size === 'number' ? `${size}px` : size,
         height: typeof size === 'number' ? `${size}px` : size,
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
+        WebkitTouchCallout: 'none',
       }}
     >
       <div

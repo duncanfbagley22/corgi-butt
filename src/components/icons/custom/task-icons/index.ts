@@ -1,6 +1,7 @@
 export { default as Arrange } from "./Arrange";
 export { default as CarWash } from "./CarWash";
 export { default as Check } from "./Check";
+export { default as Dishes } from "./Dishes";
 export { default as Dryer } from "./Dryer";
 export { default as Fold } from "./Fold";
 export { default as Mop } from "./Mop";
@@ -11,6 +12,7 @@ export { default as Sweep } from "./Sweep";
 export { default as Tidy } from "./Tidy";
 export { default as Tire } from "./Tire";
 export { default as ToiletPaper } from "./ToiletPaper";
+export { default as TrashCan } from "./TrashCan";
 export { default as TrashOut } from "./TrashOut";
 export { default as Vacuum1 } from "./Vacuum1";
 export { default as Vacuum2 } from "./Vacuum2";

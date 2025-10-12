@@ -1,12 +1,14 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
-  output: 'export', // Enable static exports for GitHub Pages
+  output: isProd ? 'export' : undefined, // Only export for production
   images: {
-    unoptimized: true, // Required for static export
+    unoptimized: isProd, // Only unoptimize for production
   },
-  basePath: '/corgi-butt', // Replace with your actual repo name
-  assetPrefix: '/corgi-butt/', // Replace with your actual repo name
+  basePath: isProd ? '/corgi-butt' : '', // Only use basePath in production
+  assetPrefix: isProd ? '/corgi-butt/' : '', // Only use assetPrefix in production
 };
 
 export default nextConfig;

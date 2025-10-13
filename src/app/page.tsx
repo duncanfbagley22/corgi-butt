@@ -12,7 +12,7 @@ export default function HomePage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data, error }) => {
       if (!data.user || error) {
-        router.push('/login')
+        router.push('/auth/login')
       } else {
         setUser(data.user)
         router.push('/dashboard')

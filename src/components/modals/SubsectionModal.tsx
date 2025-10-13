@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase/supabase"
 import type { Subsection, Item } from "@/types/floorplan"
-import { ItemCard } from "@/components/ui/cards/ItemCard"
+import { ItemCard } from "@/components/ui/cards/ItemCard-temp"
 import { ItemFormModal } from "@/components/modals/ItemFormModal"
 import { ForcedCompletionModal } from "@/components/modals/ForcedCompletionModal"
 import { useAuth } from "@/hooks/useAuth"

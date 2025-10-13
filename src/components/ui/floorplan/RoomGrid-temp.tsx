@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import Room from '@/components/ui/floorplan/Room'
+import Room from '@/components/ui/floorplan/Room-temp'
 import { RoomData } from '@/types/floorplan'
 
 interface RoomGridProps {

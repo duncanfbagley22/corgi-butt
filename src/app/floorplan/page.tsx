@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/supabase'
 import { RoomData } from '@/types/floorplan'
 import { getRoomStatus } from '@/utils/itemstatus'
@@ -12,11 +13,15 @@ import RoomGrid from '@/components/ui/floorplan/RoomGrid-temp'
 import RoomFormModal from '@/components/modals/RoomFormModal'
 import RoomCard from '@/components/ui/cards/RoomCard'
 import { Button } from '@/components/ui/shadcn/button'
-import { Plus, Layout, List, Lock, LockOpen } from 'lucide-react'
+import { Plus, Layout, List, Lock, LockOpen, User, X } from 'lucide-react'
 
 import LoadSpinner from '@/components/ui/other/LoadSpinner'
 
 export default function FloorplanPage() {
+  const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userName, setUserName] = useState<string>('')
+  const [showUserPopup, setShowUserPopup] = useState(false)
   const [rooms, setRooms] = useState<RoomData[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingRoom, setEditingRoom] = useState<{ id: string; name: string; icon?: string } | null>(null)
@@ -24,9 +29,27 @@ export default function FloorplanPage() {
   const [listView, setListView] = useState(true)
   const [editMode, setEditMode] = useState(false)
   const [cardSize, setCardSize] = useState(160)
-
-  // 🌀 Add loading state
   const [loading, setLoading] = useState(true)
+
+  // Check authentication first
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/login')
+        return
+      }
+      setIsAuthenticated(true)
+      
+      // Get user email or metadata
+      const userEmail = session.user.email || 'User'
+      const displayName = session.user.user_metadata?.full_name || 
+                         session.user.user_metadata?.name || 
+                         userEmail
+      setUserName(displayName)
+    }
+    checkAuth()
+  }, [router])
 
   useEffect(() => {
     const handleResize = () => {
@@ -37,10 +60,12 @@ export default function FloorplanPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Fetch rooms
+  // Fetch rooms only if authenticated
   useEffect(() => {
+    if (!isAuthenticated) return
+
     const fetchRooms = async () => {
-      setLoading(true) // 🌀 Start loading
+      setLoading(true)
       const { data, error } = await supabase
         .from('rooms')
         .select(`
@@ -71,13 +96,11 @@ export default function FloorplanPage() {
         })
         setRooms(roomsWithStatus)
       }
-      setLoading(false) // 🌀 End loading
+      setLoading(false)
     }
 
     fetchRooms()
-  }, [])
-
-  // --- existing handlers unchanged ---
+  }, [isAuthenticated])
 
   const handleAddRoom = async (name: string, icon: string) => {
     const newRoom = { name, icon, left_percent: 10, top_percent: 10, width_percent: 20, height_percent: 15 }
@@ -127,6 +150,15 @@ export default function FloorplanPage() {
     await supabase.from('rooms').update({ left_percent: left, top_percent: top, width_percent: width, height_percent: height }).eq('id', id)
   }
 
+  // Show loading while checking auth
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadSpinner text="Checking authentication..." />
+      </div>
+    )
+  }
+
   // Render Room Detail if selected
   if (selectedRoom) {
     return <RoomDetail roomId={selectedRoom.id} roomName={selectedRoom.name} onBack={handleBackToFloorplan} />
@@ -146,6 +178,34 @@ export default function FloorplanPage() {
         onEdit={handleEditRoom}
         editingRoom={editingRoom}
       />
+
+      {/* User Info Popup */}
+      {showUserPopup && (
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setShowUserPopup(false)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-xl font-bold">User Info</h2>
+              <button 
+                onClick={() => setShowUserPopup(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-gray-700 dark:text-gray-300">
+              <span className="font-semibold">Logged in as:</span>
+              <br />
+              {userName}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className={`sticky top-0 z-10 md:backdrop-blur-none backdrop-blur-md pt-6 pb-4 flex justify-between items-center px-4 ${listView ? 'max-w-4xl' : 'max-w-4xl'} mx-auto w-full`}>
@@ -170,44 +230,47 @@ export default function FloorplanPage() {
           >
             {editMode ? <LockOpen size={16} /> : <Lock size={16} />}
           </Button>
+          
+          <Button onClick={() => setShowUserPopup(true)} style={{ width: '50px', height: '40px' }}>
+            <User size={16} />
+          </Button>
         </div>
       </div>
 
       {/* Toggle between list and floorplan */}
-
       <div className="max-w-4xl mx-auto my-4 px-4 min-h-[400px] flex items-center justify-center">
-      {loading ? (
-        <LoadSpinner text="Loading rooms..." />
-      ) : listView ? (
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-4 justify-items-center w-full">
-          {rooms.map((room) => (
-            <RoomCard
-              key={room.id}
-              room={{ id: room.id, name: room.name, icon: room.icon, subsections: room.subsections || [] }}
-              size={cardSize}
-              onClick={() => handleRoomClick(room.id, room.name)}
-              onDelete={() => handleDeleteRoom(room.id)}
-              onRename={(newName) => {
-                setRooms(prev => prev.map(r => r.id === room.id ? { ...r, name: newName } : r))
-                supabase.from('rooms').update({ name: newName }).eq('id', room.id)
-              }}
+        {loading ? (
+          <LoadSpinner text="Loading rooms..." />
+        ) : listView ? (
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-4 justify-items-center w-full">
+            {rooms.map((room) => (
+              <RoomCard
+                key={room.id}
+                room={{ id: room.id, name: room.name, icon: room.icon, subsections: room.subsections || [] }}
+                size={cardSize}
+                onClick={() => handleRoomClick(room.id, room.name)}
+                onDelete={() => handleDeleteRoom(room.id)}
+                onRename={(newName) => {
+                  setRooms(prev => prev.map(r => r.id === room.id ? { ...r, name: newName } : r))
+                  supabase.from('rooms').update({ name: newName }).eq('id', room.id)
+                }}
+                editMode={editMode}
+              />
+            ))}
+          </div>
+        ) : (
+          <Floorplan gridSize={20} width={1000} height={600}>
+            <RoomGrid
+              rooms={rooms}
+              onUpdate={handleUpdate}
+              onDelete={handleDeleteRoom}
+              onClick={handleRoomClick}
+              gridSize={10}
               editMode={editMode}
             />
-          ))}
-        </div>
-      ) : (
-        <Floorplan gridSize={20} width={1000} height={600}>
-          <RoomGrid
-            rooms={rooms}
-            onUpdate={handleUpdate}
-            onDelete={handleDeleteRoom}
-            onClick={handleRoomClick}
-            gridSize={10}
-            editMode={editMode}
-          />
-        </Floorplan>
-      )}
+          </Floorplan>
+        )}
+      </div>
     </div>
-  </div>
   )
 }

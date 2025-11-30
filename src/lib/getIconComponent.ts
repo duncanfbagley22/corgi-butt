@@ -13,10 +13,6 @@ export type IconProps = SVGProps<SVGSVGElement> & {
   strokeWidth?: number
 }
 
-/**
- * Returns a React component for the given icon name.
- * Checks the specified custom folder first, then falls back to Lucide icons.
- */
 export function getIconComponent(
   iconName: string,
   folder: CustomIconFolder = 'room'

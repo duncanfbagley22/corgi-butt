@@ -9,7 +9,7 @@ export const CustomIcons = {
   ...TaskIcons,
 }
 
-export interface Item {
+export interface Task {
   id: string
   name: string
   icon?: string
@@ -24,14 +24,14 @@ export interface Item {
   }
   forced_completion_status?: string  // Changed from boolean to string
   forced_marked_incomplete?: boolean
-  subsection_id?: string  // Also good to add this
+  area_id?: string  // Also good to add this
 }
 
-export interface Subsection {
+export interface Area {
   id: string
   name: string
   icon: string
-  items: Item[]
+  tasks: Task[]
   room_id?: string  // Also good to add this
 }
 
@@ -45,7 +45,7 @@ export type RoomData = {
   top_percent: number
   width_percent: number
   height_percent: number
-  subsections: Subsection[]
+  areas: Area[]
 }
 
 export type IconOption = {

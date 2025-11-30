@@ -54,7 +54,7 @@ export default function RoomDetail({ roomId, roomName, onBack }: RoomDetailProps
         const { data: itemsData, error: itemsError } = await supabase
           .from('items')
           .select('id, icon, name, last_completed, frequency, forced_marked_incomplete, forced_completion_status')
-          .eq('subsection_id', sub.id)
+          .eq('area_id', sub.id)
 
         if (itemsError) console.error('Error fetching items:', itemsError)
         return { ...sub, items: itemsData || [] }

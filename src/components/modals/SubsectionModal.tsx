@@ -61,7 +61,7 @@ export default function SubsectionModal({
         last_completed_by_user:users(id, display_name, full_name)
       `
       )
-      .eq("subsection_id", subsection.id)
+      .eq("area_id", subsection.id)
       .order("created_at", { ascending: true })
 
     if (error) console.error("Error fetching items:", error)
@@ -88,7 +88,7 @@ export default function SubsectionModal({
   const addItem = () => {
     setEditingItem({
       id: '',
-      subsection_id: subsection.id,
+      area_id: subsection.id,
       name: '',
       frequency: 'weekly',
       last_completed: null,

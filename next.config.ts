@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const isProd = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = {
-  output: isProd ? 'export' : undefined, // Only export for production
   images: {
     unoptimized: isProd, // Only unoptimize for production
   },

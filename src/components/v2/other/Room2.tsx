@@ -59,6 +59,7 @@ const statusInfo = useMemo(() => {
   const areasWithTasks = areas.map(area => ({
     id: area.id,
     name: area.name,
+    room_id: area.room_id ?? id,
     tasks: (area.tasks || []).map(task => ({
       id: task.id,
       last_completed: task.last_completed ?? null,

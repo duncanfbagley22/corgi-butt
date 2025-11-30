@@ -23,7 +23,7 @@ export function useAuth() {
     
 
       if (authError || !authData?.user) {
-        router.push('/login')
+        router.push('/login2')
         return
       }
 
@@ -35,7 +35,7 @@ export function useAuth() {
 
       if (userError || !userData) {
         console.error('Error fetching user:', userError)
-        router.push('/login')
+        router.push('/login2')
         return
       }
 

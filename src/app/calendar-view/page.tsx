@@ -286,7 +286,7 @@ export default function DashboardPage() {
 
       {showToast && (
         <Toast
-          message="Task completed! 🎉"
+          message="Task completed!"
           onClose={() => setShowToast(false)}
         />
       )}

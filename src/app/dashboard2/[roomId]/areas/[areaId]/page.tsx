@@ -463,8 +463,6 @@ export default function AreaPage() {
         return;
       }
 
-      alert("Task completed! 🎉");
-
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === taskId
@@ -813,6 +811,8 @@ export default function AreaPage() {
                           }
                           onDelete={() => handleDeleteTask(task.id)}
                           className="h-[140px] w-[140px] sm:h-[180px] sm:w-[180px]"
+                          showToastOnLongPress={true}
+                          toastMessage="Task completed!"
                         >
                           <CardInfo
                             frontContent={

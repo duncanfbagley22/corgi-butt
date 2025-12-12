@@ -30,7 +30,7 @@ const STATUS_COLORS: Record<RoomStatus, string> = {
   'soon': theme.colors.cardYellow,
   'due': theme.colors.cardRed,
   'overdue': theme.colors.cardDarkRed,
-  'neutral': '#FFFFFF' // or theme.colors.white if you have it
+  'neutral': '#FFFFFF'
 }
 
 export default function Room({
@@ -54,24 +54,22 @@ export default function Room({
   const containerRef = useRef<HTMLElement | null>(null)
   const roomRef = useRef<HTMLDivElement>(null)
 
-const statusInfo = useMemo(() => {
-  // Transform areas to include tasks with proper typing
-  const areasWithTasks = areas.map(area => ({
-    id: area.id,
-    name: area.name,
-    room_id: area.room_id ?? id,
-    tasks: (area.tasks || []).map(task => ({
-      id: task.id,
-      last_completed: task.last_completed ?? null,
-      frequency: typeof task.frequency === 'string' ? parseInt(task.frequency, 10) : task.frequency,
-      forced_marked_incomplete: task.forced_marked_incomplete,
-      forced_completion_status: task.forced_completion_status as "soon" | "due" | "overdue" | null || null,
+  const statusInfo = useMemo(() => {
+    const areasWithTasks = areas.map(area => ({
+      id: area.id,
+      name: area.name,
+      room_id: area.room_id ?? id,
+      tasks: (area.tasks || []).map(task => ({
+        id: task.id,
+        last_completed: task.last_completed ?? null,
+        frequency: typeof task.frequency === 'string' ? parseInt(task.frequency, 10) : task.frequency,
+        forced_marked_incomplete: task.forced_marked_incomplete,
+        forced_completion_status: task.forced_completion_status as "soon" | "due" | "overdue" | null || null,
+      }))
     }))
-  }))
-  return getRoomStatusFromAreas(areasWithTasks)
-}, [areas])
+    return getRoomStatusFromAreas(areasWithTasks)
+  }, [areas, id])
 
-  // Resolve string icon to React component
   const IconComponent = icon ? getIconComponent(icon, 'room') : undefined
 
   // Container resize observer
@@ -79,16 +77,38 @@ const statusInfo = useMemo(() => {
     const container = document.querySelector('.floorplan-container') as HTMLElement
     if (container) {
       containerRef.current = container
-      setContainerSize({ width: container.clientWidth, height: container.clientHeight })
-      const resizeObserver = new ResizeObserver(() => {
+      const updateSize = () => {
         setContainerSize({ width: container.clientWidth, height: container.clientHeight })
-      })
+      }
+      updateSize()
+      
+      const resizeObserver = new ResizeObserver(updateSize)
       resizeObserver.observe(container)
       return () => resizeObserver.disconnect()
     }
   }, [])
 
-  // Measure room size
+  // Measure room size with ResizeObserver
+  useEffect(() => {
+    if (!roomRef.current) return
+    
+    const updateRoomSize = () => {
+      if (roomRef.current) {
+        setRoomSize({
+          width: roomRef.current.offsetWidth,
+          height: roomRef.current.offsetHeight
+        })
+      }
+    }
+    
+    updateRoomSize()
+    const resizeObserver = new ResizeObserver(updateRoomSize)
+    resizeObserver.observe(roomRef.current)
+    
+    return () => resizeObserver.disconnect()
+  }, [])
+
+  // Also update room size when container size or percentages change
   useEffect(() => {
     if (roomRef.current) {
       setRoomSize({
@@ -96,7 +116,7 @@ const statusInfo = useMemo(() => {
         height: roomRef.current.offsetHeight
       })
     }
-  }, [widthPercent, heightPercent, containerSize])
+  }, [containerSize.width, containerSize.height, widthPercent, heightPercent])
 
   const pixelPosition = {
     x: (leftPercent / 100) * containerSize.width,
@@ -109,14 +129,21 @@ const statusInfo = useMemo(() => {
     }
   }
 
-const statusStyle = STATUS_COLORS[statusInfo]
+  const statusStyle = STATUS_COLORS[statusInfo]
 
-  // Dynamic sizing
-  const minDimension = Math.min(roomSize.width, roomSize.height)
-  const iconSize = Math.max(24, Math.min(minDimension / 4, 64))
-  const fontSize = Math.max(12, Math.min(minDimension / 8, 20))
-  const deleteButtonSize = Math.max(20, Math.min(minDimension / 8, 32))
-  const deleteIconSize = Math.max(12, Math.min(minDimension / 12, 20))
+  // Calculate dimensions based on actual or estimated room size
+  const effectiveWidth = roomSize.width || (widthPercent / 100) * containerSize.width
+  const effectiveHeight = roomSize.height || (heightPercent / 100) * containerSize.height
+  const minDimension = Math.min(effectiveWidth, effectiveHeight)
+  
+  // Improved scaling with better min/max bounds
+  const iconSize = Math.max(20, Math.min(minDimension * 0.35, 80))
+  const fontSize = Math.max(10, Math.min(minDimension * 0.15, 24))
+  const deleteButtonSize = Math.max(24, Math.min(minDimension * 0.2, 40))
+  const deleteIconSize = Math.max(14, Math.min(minDimension * 0.12, 24))
+  
+  // Calculate padding to ensure text doesn't overflow
+  const horizontalPadding = Math.max(8, effectiveWidth * 0.05)
 
   return (
     <Rnd
@@ -151,9 +178,9 @@ const statusStyle = STATUS_COLORS[statusInfo]
     >
       <div
         ref={roomRef}
-          style={{
-    backgroundColor: statusStyle, // Add this line
-  }}
+        style={{
+          backgroundColor: statusStyle,
+        }}
         className={`w-full h-full rounded-2xl shadow-lg
                   flex flex-col items-center justify-center relative group 
                   transform hover:scale-105 transition-all duration-300
@@ -162,14 +189,31 @@ const statusStyle = STATUS_COLORS[statusInfo]
         onClick={handleClick}
       >
         {IconComponent && (
-          <div className="text-gray-800 dark:text-gray-100 mb-2 drop-shadow-md">
-            <IconComponent size={iconSize} strokeWidth={1.5} />
+          <div 
+            className="text-gray-800 dark:text-gray-100 drop-shadow-md flex-shrink-0"
+            style={{ 
+              marginBottom: `${Math.max(4, minDimension * 0.05)}px`,
+              fontSize: `${iconSize}px`,
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <IconComponent strokeWidth={1.5} />
           </div>
         )}
 
         <div 
-          className="font-bold text-center text-gray-800 dark:text-gray-100 px-2"
-          style={{ fontSize: `${fontSize}px` }}
+          className="font-bold text-center text-gray-800 dark:text-gray-100 leading-tight"
+          style={{ 
+            fontSize: `${fontSize}px`,
+            paddingLeft: `${horizontalPadding}px`,
+            paddingRight: `${horizontalPadding}px`,
+            maxWidth: '100%',
+            wordBreak: 'break-word',
+            hyphens: 'auto'
+          }}
         >
           {name}
         </div>
@@ -188,8 +232,8 @@ const statusStyle = STATUS_COLORS[statusInfo]
             style={{
               width: `${deleteButtonSize}px`,
               height: `${deleteButtonSize}px`,
-              top: `${Math.max(4, minDimension / 26)}px`,
-              right: `${Math.max(4, minDimension / 26)}px`
+              top: `${Math.max(6, minDimension * 0.08)}px`,
+              right: `${Math.max(6, minDimension * 0.08)}px`
             }}
           >
             <X size={deleteIconSize} className="pointer-events-none" />

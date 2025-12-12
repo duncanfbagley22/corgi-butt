@@ -61,7 +61,6 @@ const Toast = ({ message, onClose }: { message: string; onClose: () => void }) =
   return (
     <div className={`fixed top-24 left-0 right-0 z-50 flex justify-center ${isExiting ? 'animate-fade-out' : 'animate-slide-down'}`}>
       <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
-        <CheckCircle2 size={24} />
         <span className="font-medium">{message}</span>
       </div>
     </div>

@@ -1,69 +1,62 @@
-interface LoaderProps {
-  primaryColor?: string;
-  secondaryColor?: string;
-}
-
-export default function Loader({ 
-  primaryColor = '#3FB8AF',
-  secondaryColor = '#FF3D7F'
-}: LoaderProps) {
+export default function Loader({ primaryColor = "#3b82f6", secondaryColor = "#8b5cf6" }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <style>{`
-        .loader {
-          width: 48px;
-          aspect-ratio: 1;
-          background: ${primaryColor};
-          position: relative;
-          animation: loader-flip 2.5s infinite linear alternate;
-        }
-        
-        .loader:before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: ${secondaryColor};
-          transform: translate(100%);
-          transform-origin: top left;
-          animation: loader-rotate 0.5s infinite alternate;
-        }
-        
-        @keyframes loader-flip {
-          0%, 19.9%,
-          80%, 100% {
-            transform: scale(1, 1);
-          }
-          20%, 39.9% {
-            transform: scale(-1, 1);
-          }
-          40%, 59.9% {
-            transform: scale(-1, -1);
-          }
-          60%, 79.9% {
-            transform: scale(1, -1);
-          }
-        }
-        
-        @keyframes loader-rotate {
-          0%, 20% {
-            transform: translate(100%) rotate(0);
-          }
-          80%, 100% {
-            transform: translate(100%) rotate(-180deg);
-          }
-        }
-
-        .loading-text {
-          margin-top: 3rem;
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #fff;
-          letter-spacing: 0.05em;
-        }
-      `}</style>
-      
-      <div className="loader" role="status" aria-label="Loading"></div>
-      <div className="loading-text">Loading...</div>
+    <div className="flex flex-col items-center justify-center gap-6 min-h-screen">
+      <div className="relative w-24 h-24">
+        <style>
+          {`
+            @keyframes loaderAnim {
+              0% {
+                inset: 0 52.5px 52.5px 0;
+              }
+              12.5% {
+                inset: 0 52.5px 0 0;
+              }
+              25% {
+                inset: 52.5px 52.5px 0 0;
+              }
+              37.5% {
+                inset: 52.5px 0 0 0;
+              }
+              50% {
+                inset: 52.5px 0 0 52.5px;
+              }
+              62.5% {
+                inset: 0 0 0 52.5px;
+              }
+              75% {
+                inset: 0 0 52.5px 52.5px;
+              }
+              87.5% {
+                inset: 0 0 52.5px 0;
+              }
+              100% {
+                inset: 0 52.5px 52.5px 0;
+              }
+            }
+            
+            .loader-element::before,
+            .loader-element::after {
+              content: "";
+              position: absolute;
+              border-radius: 50px;
+              animation: loaderAnim 2.5s infinite;
+            }
+            
+            .loader-element::before {
+              background-color: ${primaryColor};
+            }
+            
+            .loader-element::after {
+              background-color: ${secondaryColor};
+              animation-delay: -1.25s;
+            }
+          `}
+        </style>
+        <div className="loader-element w-full h-full relative"></div>
+      </div>
+      <div className="text-white text-2xl font-bold font-[Poppins] tracking-wide">
+        LOADING
+      </div>
     </div>
   );
 }

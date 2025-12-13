@@ -777,68 +777,95 @@ export default function AreaPage() {
                 </p>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-items-center w-full">
-                  {tasks.map((task) => {
-                    const IconComponent = getIconComponent(task.icon);
-                    const taskStatus = getTaskStatusFromData({
-                      id: task.id,
-                      last_completed: task.last_completed || null,
-                      frequency: task.frequency || 7,
-                      forced_marked_incomplete: task.forced_marked_incomplete,
-                      forced_completion_status:
-                        task.forced_completion_status as TaskStatus | null,
-                    });
-                    const bgColor = getStatusColor(taskStatus);
-                    const overrideStatus = statusOverrides[task.id];
+                  {[...tasks]
+                    .sort((a, b) => {
+                      const getTaskStatusValue = (task: Task) => {
+                        const status = getTaskStatusFromData({
+                          id: task.id,
+                          last_completed: task.last_completed || null,
+                          frequency: task.frequency || 7,
+                          forced_marked_incomplete:
+                            task.forced_marked_incomplete,
+                          forced_completion_status:
+                            task.forced_completion_status as TaskStatus | null,
+                        });
 
-                    return (
-                      <div key={task.id} className="relative">
-                        <CardContainer
-                          backgroundColor={theme.colors.primary}
-                          hoverEffect={!isEditMode && !isStatusMode}
-                          shadow
-                          padding=".5rem"
-                          editMode={isEditMode}
-                          enableLongPress={!isStatusMode}
-                          onLongPress={() => handleCompleteTask(task.id)}
-                          onClick={() =>
-                            handleTaskClick(
-                              task.id,
-                              task.name,
-                              task.icon,
-                              task.description,
-                              task.frequency
-                            )
-                          }
-                          onDelete={() => handleDeleteTask(task.id)}
-                          className="h-[140px] w-[140px] sm:h-[180px] sm:w-[180px]"
-                          showToastOnLongPress={true}
-                          toastMessage="Task completed!"
-                        >
-                          <CardInfo
-                            frontContent={
-                              <IconComponent className="w-16 h-16" />
+                        // Define sort order: lower number = appears first
+                        const statusOrder: Record<TaskStatus, number> = {
+                          overdue: 0,
+                          due: 1,
+                          soon: 2,
+                          neutral: 3,
+                          complete: 4,
+                        };
+
+                        return statusOrder[status] ?? 3; // anything else gets 4
+                      };
+
+                      return getTaskStatusValue(a) - getTaskStatusValue(b);
+                    })
+                    .map((task) => {
+                      const IconComponent = getIconComponent(task.icon);
+                      const taskStatus = getTaskStatusFromData({
+                        id: task.id,
+                        last_completed: task.last_completed || null,
+                        frequency: task.frequency || 7,
+                        forced_marked_incomplete: task.forced_marked_incomplete,
+                        forced_completion_status:
+                          task.forced_completion_status as TaskStatus | null,
+                      });
+                      const bgColor = getStatusColor(taskStatus);
+                      const overrideStatus = statusOverrides[task.id];
+
+                      return (
+                        <div key={task.id} className="relative">
+                          <CardContainer
+                            backgroundColor={theme.colors.primary}
+                            hoverEffect={!isEditMode && !isStatusMode}
+                            shadow
+                            padding=".5rem"
+                            editMode={isEditMode}
+                            enableLongPress={!isStatusMode}
+                            onLongPress={() => handleCompleteTask(task.id)}
+                            onClick={() =>
+                              handleTaskClick(
+                                task.id,
+                                task.name,
+                                task.icon,
+                                task.description,
+                                task.frequency
+                              )
                             }
-                            bgColor={bgColor}
-                          />
-                          <CardText text={task.name} />
-                        </CardContainer>
-
-                        {isStatusMode && overrideStatus && (
-                          <div
-                            className="absolute top-3/5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-full shadow-lg pointer-events-none"
-                            style={{
-                              backgroundColor:
-                                getForcedPillStatusColor(overrideStatus),
-                            }}
+                            onDelete={() => handleDeleteTask(task.id)}
+                            className="h-[140px] w-[140px] sm:h-[180px] sm:w-[180px]"
+                            showToastOnLongPress={true}
+                            toastMessage="Task completed!"
                           >
-                            <p className="text-white text-sm font-semibold capitalize">
-                              {overrideStatus}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                            <CardInfo
+                              frontContent={
+                                <IconComponent className="w-16 h-16" />
+                              }
+                              bgColor={bgColor}
+                            />
+                            <CardText text={task.name} />
+                          </CardContainer>
+
+                          {isStatusMode && overrideStatus && (
+                            <div
+                              className="absolute top-3/5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-full shadow-lg pointer-events-none"
+                              style={{
+                                backgroundColor:
+                                  getForcedPillStatusColor(overrideStatus),
+                              }}
+                            >
+                              <p className="text-white text-sm font-semibold capitalize">
+                                {overrideStatus}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                 </div>
               )}
             </div>

@@ -421,7 +421,26 @@ useEffect(() => {
                 </p>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-items-center w-full">
-                  {areas.map((area) => {
+{[...areas]
+                    .sort((a, b) => {
+                      const getAreaStatusValue = (area: Area) => {
+                        const status = areaStatuses.get(area.id) || "neutral";
+                        
+                        // Define sort order: lower number = appears first
+                        const statusOrder: Record<string, number> = {
+                          overdue: 0,
+                          due: 1,
+                          soon: 2,
+                          neutral: 3,
+                          complete: 4,
+                        };
+                        
+                        return statusOrder[status] ?? 5;
+                      };
+                      
+                      return getAreaStatusValue(a) - getAreaStatusValue(b);
+                    })
+                    .map((area) => {
                     const IconComponent = getIconComponent(area.icon);
                     const areaStatus = areaStatuses.get(area.id) || "neutral";
                     const bgColor = getAreaStatusColor(areaStatus);

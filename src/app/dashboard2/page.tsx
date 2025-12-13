@@ -498,7 +498,26 @@ export default function DashboardPage() {
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-items-center w-full">
-                    {rooms.map((room) => {
+{[...rooms]
+                      .sort((a, b) => {
+                        const getRoomStatusValue = (room: RoomData) => {
+                          const status = (room.status as RoomStatus) || "neutral";
+                          
+                          // Define sort order: lower number = appears first
+                          const statusOrder: Record<string, number> = {
+                            overdue: 0,
+                            due: 1,
+                            soon: 2,
+                            neutral: 3,
+                            complete: 4,
+                          };
+                          
+                          return statusOrder[status] ?? 5;
+                        };
+                        
+                        return getRoomStatusValue(a) - getRoomStatusValue(b);
+                      })
+                      .map((room) => {
                       const IconComponent = getIconComponent(room.icon);
                       const bgColor = getRoomStatusColor(
                         (room.status as RoomStatus) || "neutral"

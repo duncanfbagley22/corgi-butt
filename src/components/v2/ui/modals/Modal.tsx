@@ -169,6 +169,10 @@ useEffect(() => {
     onFrequencyChange?.(numericFreq);
   }, [localFrequency, onFrequencyChange]);
 
+  useEffect(() => {
+  setCurrentIconIndex(selectedIconIndex);
+}, [selectedIconIndex]);
+
   // Lock scroll when modal is open
   useEffect(() => {
     if (isOpen) {

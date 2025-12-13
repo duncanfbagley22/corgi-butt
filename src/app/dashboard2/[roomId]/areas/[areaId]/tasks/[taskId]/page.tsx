@@ -25,34 +25,17 @@ import {
   House,
 } from "lucide-react";
 
-import * as CustomIcons from "@/components/icons/custom/room-icons";
-import type { IconOption } from "@/types/floorplan";
+import * as CustomIcons from "@/components/icons/custom/task-icons";
+import { TASK_ICONS } from "@/utils/iconConfig";
 
 // Define icons as before
-const ICON_OPTIONS_RAW = [
-  { name: "Balcony", component: "Balcony" },
-  { name: "Bath", component: "Bath" },
-  { name: "Bedroom", component: "Bedroom" },
-  { name: "Car", component: "Car" },
-  { name: "Chair", component: "Chair" },
-  { name: "Couch", component: "Couch" },
-  { name: "Desk", component: "Desk" },
-  { name: "Footprints", component: "Footprints" },
-  { name: "Hanger", component: "Hanger" },
-  { name: "Kitchen", component: "Kitchen" },
-  { name: "Toilet", component: "Toilet" },
-] as const;
-
-const ICON_OPTIONS: IconOption[] = ICON_OPTIONS_RAW.map((i) => ({
-  name: i.name,
-  component: i.component,
-}));
-
-const icons = ICON_OPTIONS.map((option) => {
+const icons = TASK_ICONS.map((option) => {
   const IconComponent =
     CustomIcons[option.component as keyof typeof CustomIcons];
   return <IconComponent key={option.name} className="w-12 h-12" />;
 });
+
+
 
 interface TaskData {
   id: string;
@@ -106,7 +89,7 @@ export default function TaskDetailPage() {
     return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   }
   const upperTaskStatus = toProperCase(taskStatus ?? "");
-  
+
   // Check authentication
   useEffect(() => {
     const checkAuth = async () => {
@@ -216,7 +199,7 @@ export default function TaskDetailPage() {
         setEditAreaId(areaId);
 
         // Find icon index
-        const iconIndex = ICON_OPTIONS.findIndex(
+        const iconIndex = TASK_ICONS.findIndex(
           (opt) => opt.component === taskDataResult.icon
         );
         setEditIconIndex(iconIndex >= 0 ? iconIndex : 0);
@@ -272,7 +255,8 @@ export default function TaskDetailPage() {
         last_completed: taskData.last_completed || null,
         frequency: taskData.frequency || 7,
         forced_marked_incomplete: taskData.forced_marked_incomplete,
-        forced_completion_status: taskData.forced_completion_status as TaskStatus | null,
+        forced_completion_status:
+          taskData.forced_completion_status as TaskStatus | null,
       });
       setTaskStatus(status);
     }
@@ -286,7 +270,7 @@ export default function TaskDetailPage() {
 
     try {
       // Get the selected icon component name
-      const selectedIcon = ICON_OPTIONS[editIconIndex].component;
+      const selectedIcon = TASK_ICONS[editIconIndex].component;
 
       // Update the task
       const { error: updateError } = await supabase
@@ -428,7 +412,22 @@ export default function TaskDetailPage() {
 
             <Modal
               isOpen={isOpen}
-              onClose={() => setIsOpen(false)}
+              onClose={() => {
+                // Reset all edit fields to current task data
+                if (taskData) {
+                  setEditName(taskData.name);
+                  setEditDescription(taskData.description || "");
+                  setEditFrequency(taskData.frequency || 7);
+                  setEditRoomId(roomId);
+                  setEditAreaId(areaId);
+                  // Reset icon index to the saved icon
+                  const iconIndex = TASK_ICONS.findIndex(
+                    (opt) => opt.component === taskData.icon
+                  );
+                  setEditIconIndex(iconIndex >= 0 ? iconIndex : 0);
+                }
+                setIsOpen(false);
+              }}
               mode="edit"
               level="task"
               closeButtonPosition="right"
@@ -446,7 +445,22 @@ export default function TaskDetailPage() {
               onRoomChange={setEditRoomId}
               onAreaChange={setEditAreaId}
               onPrimaryAction={handleSaveTask}
-              onSecondaryAction={() => setIsOpen(false)}
+              onSecondaryAction={() => {
+                // Reset all edit fields to current task data
+                if (taskData) {
+                  setEditName(taskData.name);
+                  setEditDescription(taskData.description || "");
+                  setEditFrequency(taskData.frequency || 7);
+                  setEditRoomId(roomId);
+                  setEditAreaId(areaId);
+                  // Reset icon index to the saved icon
+                  const iconIndex = TASK_ICONS.findIndex(
+                    (opt) => opt.component === taskData.icon
+                  );
+                  setEditIconIndex(iconIndex >= 0 ? iconIndex : 0);
+                }
+                setIsOpen(false);
+              }}
               primaryButtonText="Save"
               secondaryButtonText="Cancel"
               currentUserId={userId}

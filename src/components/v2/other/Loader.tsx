@@ -1,6 +1,6 @@
 export default function Loader({ primaryColor = "#3b82f6", secondaryColor = "#8b5cf6" }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-6 min-h-screen">
+    <div className="flex flex-col items-center gap-6 min-h-screen" style={{ paddingTop: '40vh' }}>
       <div className="relative w-24 h-24">
         <style>
           {`

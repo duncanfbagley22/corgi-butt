@@ -22,6 +22,8 @@ import * as CustomIcons from "@/components/icons/custom/area-icons";
 import { AREA_ICONS } from "@/utils/iconConfig";
 import Modal from "@/components/v2/ui/modals/Modal";
 
+import { useNavigation } from "@/app/contexts/NavigationContext";
+
 // Render icons for the modal
 const icons = AREA_ICONS.map((option) => {
   const IconComponent =
@@ -68,6 +70,8 @@ export default function RoomPage() {
     icon?: string;
   } | null>(null);
 
+  const { setTransition } = useNavigation();
+
   // Check authentication
   useEffect(() => {
     const checkAuth = async () => {
@@ -87,7 +91,6 @@ export default function RoomPage() {
     checkAuth();
   }, [router]);
 
-
   // Exit edit mode when profile opens
   useEffect(() => {
     if (isProfileOpen) {
@@ -97,50 +100,50 @@ export default function RoomPage() {
 
   // Fetch room name and areas
   // Fetch room name and areas
-useEffect(() => {
-  if (!isAuthenticated || !roomId) return;
+  useEffect(() => {
+    if (!isAuthenticated || !roomId) return;
 
-  const fetchRoomData = async () => {
-    setLoading(true);
+    const fetchRoomData = async () => {
+      setLoading(true);
 
-    // Fetch room name
-    const { data: roomData, error: roomError } = await supabase
-      .from("rooms")
-      .select("name")
-      .eq("id", roomId)
-      .single();
+      // Fetch room name
+      const { data: roomData, error: roomError } = await supabase
+        .from("rooms")
+        .select("name")
+        .eq("id", roomId)
+        .single();
 
-    if (roomError) {
-      console.error("Error fetching room:", roomError);
-      setRoomName("Room Not Found");
-    } else {
-      setRoomName(roomData?.name || "Unknown Room");
-    }
-
-    // Fetch areas (subsections) for this room
-    const { data: areasData, error: areasError } = await supabase
-      .from("areas")
-      .select("id, name, icon, room_id")
-      .eq("room_id", roomId);
-
-    if (areasError) {
-      console.error("Error fetching areas:", areasError);
-    } else {
-      setAreas(areasData || []);
-      
-      // Fetch statuses immediately after setting areas
-      if (areasData && areasData.length > 0) {
-        const areaIds = areasData.map((area) => area.id);
-        const statuses = await getMultipleAreaStatuses(areaIds);
-        setAreaStatuses(statuses);
+      if (roomError) {
+        console.error("Error fetching room:", roomError);
+        setRoomName("Room Not Found");
+      } else {
+        setRoomName(roomData?.name || "Unknown Room");
       }
-    }
 
-    setLoading(false);
-  };
+      // Fetch areas (subsections) for this room
+      const { data: areasData, error: areasError } = await supabase
+        .from("areas")
+        .select("id, name, icon, room_id")
+        .eq("room_id", roomId);
 
-  fetchRoomData();
-}, [isAuthenticated, roomId]);
+      if (areasError) {
+        console.error("Error fetching areas:", areasError);
+      } else {
+        setAreas(areasData || []);
+
+        // Fetch statuses immediately after setting areas
+        if (areasData && areasData.length > 0) {
+          const areaIds = areasData.map((area) => area.id);
+          const statuses = await getMultipleAreaStatuses(areaIds);
+          setAreaStatuses(statuses);
+        }
+      }
+
+      setLoading(false);
+    };
+
+    fetchRoomData();
+  }, [isAuthenticated, roomId]);
 
   const handleAreaClick = (
     areaId: string,
@@ -164,6 +167,8 @@ useEffect(() => {
       }
     } else {
       // Navigate to area page
+      setTransition('zoom', 'forward')
+      
       router.push(`/dashboard2/${roomId}/areas/${areaId}`);
     }
   };
@@ -275,7 +280,7 @@ useEffect(() => {
           onCancelClick={() => setIsEditMode(false)}
         />
 
-                {isEditMode && (
+        {isEditMode && (
           <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
             <div
               className="px-8 py-4 rounded-full shadow-lg"
@@ -295,7 +300,10 @@ useEffect(() => {
               key="back"
               color={theme.colors.secondary}
               size={44}
-              onClick={() => router.push("/dashboard2")}
+              onClick={() => {
+                setTransition("zoom", "back");
+                router.push("/dashboard2");
+              }}
             />,
           ]}
           rightButtons={[
@@ -421,11 +429,11 @@ useEffect(() => {
                 </p>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-items-center w-full">
-{[...areas]
+                  {[...areas]
                     .sort((a, b) => {
                       const getAreaStatusValue = (area: Area) => {
                         const status = areaStatuses.get(area.id) || "neutral";
-                        
+
                         // Define sort order: lower number = appears first
                         const statusOrder: Record<string, number> = {
                           overdue: 0,
@@ -434,43 +442,43 @@ useEffect(() => {
                           neutral: 3,
                           complete: 4,
                         };
-                        
+
                         return statusOrder[status] ?? 5;
                       };
-                      
+
                       return getAreaStatusValue(a) - getAreaStatusValue(b);
                     })
                     .map((area) => {
-                    const IconComponent = getIconComponent(area.icon);
-                    const areaStatus = areaStatuses.get(area.id) || "neutral";
-                    const bgColor = getAreaStatusColor(areaStatus);
+                      const IconComponent = getIconComponent(area.icon);
+                      const areaStatus = areaStatuses.get(area.id) || "neutral";
+                      const bgColor = getAreaStatusColor(areaStatus);
 
-                    return (
-                      <CardContainer
-                        key={area.id}
-                        backgroundColor={theme.colors.primary}
-                        hoverEffect
-                        shadow
-                        padding=".5rem"
-                        editMode={isEditMode}
-                        onClick={() =>
-                          handleAreaClick(area.id, area.name, area.icon)
-                        }
-                        onDelete={() => handleDeleteArea(area.id)}
-                        className="h-[140px] w-[140px] sm:h-[180px] sm:w-[180px] "
-                      >
-                        <CardInfo
-                          frontContent={
-                            <div className="w-12 h-12 sm:w-16 sm:h-16">
-                              <IconComponent className="w-full h-full" />
-                            </div>
+                      return (
+                        <CardContainer
+                          key={area.id}
+                          backgroundColor={theme.colors.primary}
+                          hoverEffect
+                          shadow
+                          padding=".5rem"
+                          editMode={isEditMode}
+                          onClick={() =>
+                            handleAreaClick(area.id, area.name, area.icon)
                           }
-                          bgColor={bgColor}
-                        />
-                        <CardText text={area.name} />
-                      </CardContainer>
-                    );
-                  })}
+                          onDelete={() => handleDeleteArea(area.id)}
+                          className="h-[140px] w-[140px] sm:h-[180px] sm:w-[180px] "
+                        >
+                          <CardInfo
+                            frontContent={
+                              <div className="w-12 h-12 sm:w-16 sm:h-16">
+                                <IconComponent className="w-full h-full" />
+                              </div>
+                            }
+                            bgColor={bgColor}
+                          />
+                          <CardText text={area.name} />
+                        </CardContainer>
+                      );
+                    })}
                 </div>
               )}
             </div>

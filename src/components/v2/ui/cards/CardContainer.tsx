@@ -3,7 +3,7 @@
 
 import React, { useRef, useState } from 'react'
 import clsx from 'clsx'
-import { X, CheckCircle2 } from 'lucide-react'
+import { X } from 'lucide-react'
 import { theme } from "../../../../../config/theme";
 
 interface CardContainerProps {

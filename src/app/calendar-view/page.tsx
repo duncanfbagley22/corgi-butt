@@ -14,7 +14,7 @@ import TaskCard from "@/components/v2/ui/cards/TaskCard";
 import CalendarSelect from "@/components/v2/ui/buttons/CalendarSelect";
 import ProfileSidebar from "@/components/v2/ui/modals/ProfileSideBar";
 import { getTaskStatusFromData, type TaskStatus } from "@/utils/taskstatus";
-import { LayoutDashboard, User, Settings2, CheckCircle2 } from "lucide-react";
+import { LayoutDashboard, User, Settings2 } from "lucide-react";
 
 import * as CustomIcons from "@/components/icons/custom/task-icons";
 

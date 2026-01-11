@@ -14,7 +14,7 @@ import TaskCard from "@/components/v2/ui/cards/TaskCard";
 import CalendarSelect from "@/components/v2/ui/buttons/CalendarSelect";
 import ProfileSidebar from "@/components/v2/ui/modals/ProfileSideBar";
 import { getTaskStatusFromData, type TaskStatus } from "@/utils/taskstatus";
-import { LayoutDashboard, User, Settings2 } from "lucide-react";
+import { LayoutDashboard, User, Settings2, CheckCircle2 } from "lucide-react";
 
 import * as CustomIcons from "@/components/icons/custom/task-icons";
 
@@ -42,13 +42,7 @@ interface Task {
 }
 
 // Toast Notification Component
-const Toast = ({
-  message,
-  onClose,
-}: {
-  message: string;
-  onClose: () => void;
-}) => {
+const Toast = ({ message, onClose }: { message: string; onClose: () => void }) => {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -57,7 +51,7 @@ const Toast = ({
     }, 2700); // Start fade out 300ms before removal
 
     const removeTimer = setTimeout(onClose, 3000);
-
+    
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);
@@ -65,11 +59,7 @@ const Toast = ({
   }, [onClose]);
 
   return (
-    <div
-      className={`fixed top-24 left-0 right-0 z-50 flex justify-center ${
-        isExiting ? "animate-fade-out" : "animate-slide-down"
-      }`}
-    >
+    <div className={`fixed top-24 left-0 right-0 z-50 flex justify-center ${isExiting ? 'animate-fade-out' : 'animate-slide-down'}`}>
       <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
         <span className="font-medium">{message}</span>
       </div>
@@ -120,7 +110,6 @@ export default function DashboardPage() {
 
     const fetchTasks = async () => {
       setLoading(true);
-      const startTime = Date.now(); // Add this line
 
       try {
         // Call the RPC function with the user_id parameter
@@ -141,13 +130,7 @@ export default function DashboardPage() {
           err instanceof Error ? err.message : "An unknown error occurred"
         );
       } finally {
-        const elapsed = Date.now() - startTime;
-        const minLoadingTime = 500; // milliseconds
-        const remainingTime = Math.max(0, minLoadingTime - elapsed);
-
-        setTimeout(() => {
-          setLoading(false);
-        }, remainingTime);
+        setLoading(false);
       }
     };
 
@@ -196,7 +179,7 @@ export default function DashboardPage() {
       setCompletingTaskId(taskId);
 
       // Wait for animation to complete
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Update the database
       const { error } = await supabase
@@ -301,7 +284,10 @@ export default function DashboardPage() {
       `}</style>
 
       {showToast && (
-        <Toast message="Task completed!" onClose={() => setShowToast(false)} />
+        <Toast
+          message="Task completed!"
+          onClose={() => setShowToast(false)}
+        />
       )}
 
       <MainBackground color={theme.colors.background}>
@@ -390,9 +376,11 @@ export default function DashboardPage() {
 
                 // Check if we have any tasks to display
                 if (statusFilteredTasks.length === 0) {
-                  return loading ? null : (
+                  return (
                     <div className="col-span-full text-center text-white">
-                      No tasks found! You are up to date!
+                      {tasks.length === 0
+                        ? "No tasks found! You're up to date!"
+                        : "No tasks found! You're up to date!"}
                     </div>
                   );
                 }

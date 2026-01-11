@@ -28,8 +28,6 @@ import {
 import * as CustomIcons from "@/components/icons/custom/task-icons";
 import { TASK_ICONS } from "@/utils/iconConfig";
 
-import { useNavigation } from '@/app/contexts/NavigationContext'
-
 // Define icons as before
 const icons = TASK_ICONS.map((option) => {
   const IconComponent =
@@ -91,8 +89,6 @@ export default function TaskDetailPage() {
     return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   }
   const upperTaskStatus = toProperCase(taskStatus ?? "");
-
-    const { setTransition } = useNavigation();
 
   // Check authentication
   useEffect(() => {
@@ -376,10 +372,9 @@ export default function TaskDetailPage() {
               key="back"
               color={theme.colors.secondary}
               size={44}
-                            onClick={() => {
-                setTransition("zoom", "back");
-                router.push(`/dashboard2/${roomId}/areas/${areaId}`);
-              }}
+              onClick={() =>
+                router.push(`/dashboard2/${roomId}/areas/${areaId}`)
+              }
             />,
           ]}
           rightButtons={[

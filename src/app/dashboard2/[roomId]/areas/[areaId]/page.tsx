@@ -22,8 +22,6 @@ import * as CustomIcons from "@/components/icons/custom/task-icons";
 import { TASK_ICONS } from "@/utils/iconConfig";
 import { getTaskStatusFromData, type TaskStatus } from "@/utils/taskstatus";
 
-import { useNavigation } from "@/app/contexts/NavigationContext";
-
 // Render icons for the modal
 const icons = TASK_ICONS.map((option) => {
   const IconComponent =
@@ -103,8 +101,6 @@ export default function AreaPage() {
   const [selectedRoomId, setSelectedRoomId] = useState(roomId);
   const [selectedAreaId, setSelectedAreaId] = useState(areaId);
   const [userId, setUserId] = useState<string>("");
-
-  const { setTransition } = useNavigation();
 
   // Check authentication
   useEffect(() => {
@@ -300,8 +296,6 @@ export default function AreaPage() {
         setIsEditOpen(true);
       }
     } else {
-      setTransition("zoom", "forward");
-
       router.push(`/dashboard2/${roomId}/areas/${areaId}/tasks/${taskId}`);
     }
   };
@@ -641,10 +635,7 @@ export default function AreaPage() {
               key="back"
               color={theme.colors.secondary}
               size={44}
-              onClick={() => {
-                setTransition("zoom", "back");
-                router.push(`/dashboard2/${roomId}`);
-              }}
+              onClick={() => router.push(`/dashboard2/${roomId}`)}
             />,
           ]}
           rightButtons={[

@@ -19,7 +19,8 @@ export default function Template({ children }: { children: React.ReactNode }) {
   }, [pathname, resetTransition]);
 
   return (
+    <>
         {children}
-
+</>
   );
 }

@@ -20,6 +20,8 @@ import Floorplan2 from "@/components/v2/other/Floorplan2";
 import { getRoomStatusFromAreas, type RoomStatus } from "@/utils/roomstatus";
 import RoomGrid2 from "@/components/v2/other/RoomGrid2";
 
+import { useNavigation } from "@/app/contexts/NavigationContext";
+
 import {
   SquarePen,
   User,
@@ -67,6 +69,8 @@ export default function DashboardPage() {
   } | null>(null);
   const [isGridView, setIsGridView] = useState(false);
 
+  const { setTransition } = useNavigation();
+
   // Check authentication
   useEffect(() => {
     const checkAuth = async () => {
@@ -91,12 +95,13 @@ export default function DashboardPage() {
   }, [isProfileOpen]);
 
   // Fetch rooms only if authenticated
-  // Fetch rooms only if authenticated
   useEffect(() => {
-    if (!isAuthenticated) return;
-    const fetchRooms = async () => {
-      setLoading(true);
-      const { data, error } = await supabase.from("rooms").select(`
+  if (!isAuthenticated) return;
+  const fetchRooms = async () => {
+    setLoading(true);
+    const startTime = Date.now(); // Track when loading started
+    
+    const { data, error } = await supabase.from("rooms").select(`
       *,
       areas (
         id,
@@ -111,27 +116,36 @@ export default function DashboardPage() {
         )
       )
     `);
-      if (error) {
-        console.error("Error fetching rooms:", error);
-        console.error("Error code:", error.code);
-        console.error("Error details:", error.details);
-        console.error("Error hint:", error.hint);
-        alert(`Error loading rooms: ${error.message}`);
-      } else {
-        const roomsWithStatus = (data || []).map((room) => {
-          const status = getRoomStatusFromAreas(room.areas || []);
-          return {
-            ...room,
-            status,
-          };
-        });
-        setRooms(roomsWithStatus);
-      }
+    
+    if (error) {
+      console.error("Error fetching rooms:", error);
+      console.error("Error code:", error.code);
+      console.error("Error details:", error.details);
+      console.error("Error hint:", error.hint);
+      alert(`Error loading rooms: ${error.message}`);
+    } else {
+      const roomsWithStatus = (data || []).map((room) => {
+        const status = getRoomStatusFromAreas(room.areas || []);
+        return {
+          ...room,
+          status,
+        };
+      });
+      setRooms(roomsWithStatus);
+    }
+    
+    // Ensure loading shows for at least 500ms (adjust as needed)
+    const elapsed = Date.now() - startTime;
+    const minLoadingTime = 500; // milliseconds
+    const remainingTime = Math.max(0, minLoadingTime - elapsed);
+    
+    setTimeout(() => {
       setLoading(false);
-    };
+    }, remainingTime);
+  };
 
-    fetchRooms();
-  }, [isAuthenticated]);
+  fetchRooms();
+}, [isAuthenticated]);
 
   const handleUpdate = async (
     id: string,
@@ -189,7 +203,8 @@ export default function DashboardPage() {
   const handleRoomClick = (
     roomId: string,
     roomName: string,
-    roomIcon?: string
+    roomIcon?: string,
+    event?: React.MouseEvent // Add the event parameter as optional
   ) => {
     if (isEditMode) {
       // Open edit modal with current room data
@@ -207,7 +222,15 @@ export default function DashboardPage() {
         setIsEditOpen(true);
       }
     } else {
+          console.log('Click event:', event);
+    if (event) {
+      console.log('Click position:', event.clientX, event.clientY);
+    } else {
+      console.log('No event received!');
+    }
       // Navigate to the room's page
+      setTransition("zoom", "forward", event); // Pass the event
+
       router.push(`/dashboard2/${roomId}`);
     }
   };
@@ -492,17 +515,18 @@ export default function DashboardPage() {
             ) : (
               <div className="w-full max-w-4xl p-4">
                 {/* List View - Now properly mapped */}
-                {rooms.length === 0 ? (
-                  <p className="text-white text-center">
-                    No rooms yet. Add one to get started!
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-items-center w-full">
-{[...rooms]
+{loading ? null : rooms.length === 0 ? (
+  <p className="text-white text-center">
+    No rooms yet. Add one to get started!
+  </p>
+) : (
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-items-center w-full">
+                    {[...rooms]
                       .sort((a, b) => {
                         const getRoomStatusValue = (room: RoomData) => {
-                          const status = (room.status as RoomStatus) || "neutral";
-                          
+                          const status =
+                            (room.status as RoomStatus) || "neutral";
+
                           // Define sort order: lower number = appears first
                           const statusOrder: Record<string, number> = {
                             overdue: 0,
@@ -511,44 +535,44 @@ export default function DashboardPage() {
                             neutral: 3,
                             complete: 4,
                           };
-                          
+
                           return statusOrder[status] ?? 5;
                         };
-                        
+
                         return getRoomStatusValue(a) - getRoomStatusValue(b);
                       })
                       .map((room) => {
-                      const IconComponent = getIconComponent(room.icon);
-                      const bgColor = getRoomStatusColor(
-                        (room.status as RoomStatus) || "neutral"
-                      );
+                        const IconComponent = getIconComponent(room.icon);
+                        const bgColor = getRoomStatusColor(
+                          (room.status as RoomStatus) || "neutral"
+                        );
 
-                      return (
-                        <CardContainer
-                          key={room.id}
-                          backgroundColor={theme.colors.primary}
-                          hoverEffect
-                          shadow
-                          padding=".5rem"
-                          editMode={isEditMode}
-                          onClick={() =>
-                            handleRoomClick(room.id, room.name, room.icon)
-                          }
-                          onDelete={() => handleDeleteRoom(room.id)}
-                          className="h-[140px] w-[140px] sm:h-[180px] sm:w-[180px] "
-                        >
-                          <CardInfo
-                            frontContent={
-                              <div className="w-12 h-12 sm:w-16 sm:h-16">
-                                <IconComponent className="w-full h-full" />
-                              </div>
+                        return (
+                          <CardContainer
+                            key={room.id}
+                            backgroundColor={theme.colors.primary}
+                            hoverEffect
+                            shadow
+                            padding=".5rem"
+                            editMode={isEditMode}
+                            onClick={(e) =>
+                              handleRoomClick(room.id, room.name, room.icon, e)
                             }
-                            bgColor={bgColor}
-                          />
-                          <CardText text={room.name} />
-                        </CardContainer>
-                      );
-                    })}
+                            onDelete={() => handleDeleteRoom(room.id)}
+                            className="h-[140px] w-[140px] sm:h-[180px] sm:w-[180px] "
+                          >
+                            <CardInfo
+                              frontContent={
+                                <div className="w-12 h-12 sm:w-16 sm:h-16">
+                                  <IconComponent className="w-full h-full" />
+                                </div>
+                              }
+                              bgColor={bgColor}
+                            />
+                            <CardText text={room.name} />
+                          </CardContainer>
+                        );
+                      })}
                   </div>
                 )}
               </div>

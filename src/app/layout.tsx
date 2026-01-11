@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
+import { NavigationProvider } from "./contexts/NavigationContext";
+import { theme } from '../../config/theme' // Adjust path as needed
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,8 +40,9 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.className} antialiased`}
+        style={{ backgroundColor: theme.colors.background }}
       >
-        {children}
+        <NavigationProvider>{children}</NavigationProvider>
       </body>
     </html>
   );

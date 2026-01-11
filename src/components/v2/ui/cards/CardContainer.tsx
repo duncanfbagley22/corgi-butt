@@ -3,7 +3,7 @@
 
 import React, { useRef, useState } from 'react'
 import clsx from 'clsx'
-import { X, CheckCircle2 } from 'lucide-react'
+import { X } from 'lucide-react'
 import { theme } from "../../../../../config/theme";
 
 interface CardContainerProps {
@@ -17,7 +17,7 @@ interface CardContainerProps {
   height?: string | number
   border?: boolean
   className?: string
-  onClick?: () => void
+onClick?: (event?: React.MouseEvent) => void;  // Change from () => void
   onLongPress?: () => void
   editMode?: boolean
   onDelete?: () => void
@@ -133,9 +133,9 @@ export default function CardContainer({
     setLongPressProgress(0)
   }
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
     if (!triggeredLongPress.current) {
-      onClick?.()
+      onClick?.(e)
     }
     triggeredLongPress.current = false
   }

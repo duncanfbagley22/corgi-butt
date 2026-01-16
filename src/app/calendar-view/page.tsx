@@ -42,7 +42,13 @@ interface Task {
 }
 
 // Toast Notification Component
-const Toast = ({ message, onClose }: { message: string; onClose: () => void }) => {
+const Toast = ({
+  message,
+  onClose,
+}: {
+  message: string;
+  onClose: () => void;
+}) => {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -51,7 +57,7 @@ const Toast = ({ message, onClose }: { message: string; onClose: () => void }) =
     }, 2700); // Start fade out 300ms before removal
 
     const removeTimer = setTimeout(onClose, 3000);
-    
+
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);
@@ -59,7 +65,11 @@ const Toast = ({ message, onClose }: { message: string; onClose: () => void }) =
   }, [onClose]);
 
   return (
-    <div className={`fixed top-24 left-0 right-0 z-50 flex justify-center ${isExiting ? 'animate-fade-out' : 'animate-slide-down'}`}>
+    <div
+      className={`fixed top-24 left-0 right-0 z-50 flex justify-center ${
+        isExiting ? "animate-fade-out" : "animate-slide-down"
+      }`}
+    >
       <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
         <span className="font-medium">{message}</span>
       </div>
@@ -76,9 +86,9 @@ export default function DashboardPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [userId, setUserId] = useState<string>("");
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [statusFilter, setStatusFilter] = useState<"soon" | "due" | "overdue">(
-    "soon"
-  );
+  const [statusFilter, setStatusFilter] = useState<
+    "daily" | "soon" | "due" | "overdue"
+  >("soon");
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   const [activeFilters, setActiveFilters] = useState<{
     room?: string;
@@ -179,7 +189,7 @@ export default function DashboardPage() {
       setCompletingTaskId(taskId);
 
       // Wait for animation to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Update the database
       const { error } = await supabase
@@ -284,10 +294,7 @@ export default function DashboardPage() {
       `}</style>
 
       {showToast && (
-        <Toast
-          message="Task completed!"
-          onClose={() => setShowToast(false)}
-        />
+        <Toast message="Task completed!" onClose={() => setShowToast(false)} />
       )}
 
       <MainBackground color={theme.colors.background}>
@@ -346,7 +353,7 @@ export default function DashboardPage() {
             <CalendarSelect
               value={statusFilter}
               onChange={(val) =>
-                setStatusFilter(val as "soon" | "due" | "overdue")
+                setStatusFilter(val as "daily" | "soon" | "due" | "overdue")
               }
               bgColor={theme.colors.primary}
               unselectedBgColor={theme.colors.background}
@@ -361,18 +368,38 @@ export default function DashboardPage() {
             <div className="w-full max-w-4xl p-4 grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
               {(() => {
                 // First apply status filter
-                const statusFilteredTasks = filteredTasks.filter((task) => {
-                  const taskStatus = getTaskStatusFromData({
-                    id: task.id,
-                    last_completed: task.last_completed || null,
-                    frequency: task.frequency || 7,
-                    forced_marked_incomplete: task.forced_marked_incomplete,
-                    forced_completion_status:
-                      task.forced_completion_status as TaskStatus | null,
-                  });
+                const statusFilteredTasks = filteredTasks
+                  .filter((task) => {
+                    // Special case: if "daily" is selected, only show tasks with frequency = 1
+                    if (statusFilter === "daily") {
+                      return task.frequency === 1;
+                    }
 
-                  return taskStatus === statusFilter;
-                });
+                    // For other filters (soon, due, overdue), exclude daily tasks first
+                    if (task.frequency === 1) {
+                      return false; // Don't show daily tasks in other categories
+                    }
+
+                    // Then apply the status filter as before
+                    const taskStatus = getTaskStatusFromData({
+                      id: task.id,
+                      last_completed: task.last_completed || null,
+                      frequency: task.frequency || 7,
+                      forced_marked_incomplete: task.forced_marked_incomplete,
+                      forced_completion_status:
+                        task.forced_completion_status as TaskStatus | null,
+                    });
+
+                    return taskStatus === statusFilter;
+                  })
+                  .sort((a, b) => {
+                    // First sort by room name
+                    const roomCompare = a.roomname.localeCompare(b.roomname);
+                    if (roomCompare !== 0) return roomCompare;
+
+                    // If rooms are the same, sort by area name
+                    return a.areaname.localeCompare(b.areaname);
+                  });
 
                 // Check if we have any tasks to display
                 if (statusFilteredTasks.length === 0) {

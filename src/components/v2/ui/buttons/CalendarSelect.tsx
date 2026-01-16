@@ -18,6 +18,7 @@ export default function CalendarSelect({
   unselectedTextColor = "#CBD5E1",
 }: CalendarSelectProps) {
   const options = [
+    { id: "daily", label: "Daily" },
     { id: "overdue", label: "Overdue" },
     { id: "due", label: "Due" },
     { id: "soon", label: "Soon" },

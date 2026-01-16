@@ -368,30 +368,40 @@ export default function DashboardPage() {
             <div className="w-full max-w-4xl p-4 grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
               {(() => {
                 // First apply status filter
-                const statusFilteredTasks = filteredTasks
-                  .filter((task) => {
-                    // Special case: if "daily" is selected, only show tasks with frequency = 1
-                    if (statusFilter === "daily") {
-                      return task.frequency === 1;
-                    }
+const statusFilteredTasks = filteredTasks.filter((task) => {
+  // Special case: if "daily" is selected, only show tasks with frequency = 1
+  if (statusFilter === "daily") {
+    if (task.frequency !== 1) return false;
+    
+    // Also check that the task isn't already completed today
+    const taskStatus = getTaskStatusFromData({
+      id: task.id,
+      last_completed: task.last_completed || null,
+      frequency: task.frequency || 7,
+      forced_marked_incomplete: task.forced_marked_incomplete,
+      forced_completion_status: task.forced_completion_status as TaskStatus | null,
+    });
+    
+    // Only show if not already complete
+    return taskStatus !== "complete";
+  }
+  
+  // For other filters (soon, due, overdue), exclude daily tasks first
+  if (task.frequency === 1) {
+    return false; // Don't show daily tasks in other categories
+  }
+  
+  // Then apply the status filter as before
+  const taskStatus = getTaskStatusFromData({
+    id: task.id,
+    last_completed: task.last_completed || null,
+    frequency: task.frequency || 7,
+    forced_marked_incomplete: task.forced_marked_incomplete,
+    forced_completion_status: task.forced_completion_status as TaskStatus | null,
+  });
 
-                    // For other filters (soon, due, overdue), exclude daily tasks first
-                    if (task.frequency === 1) {
-                      return false; // Don't show daily tasks in other categories
-                    }
-
-                    // Then apply the status filter as before
-                    const taskStatus = getTaskStatusFromData({
-                      id: task.id,
-                      last_completed: task.last_completed || null,
-                      frequency: task.frequency || 7,
-                      forced_marked_incomplete: task.forced_marked_incomplete,
-                      forced_completion_status:
-                        task.forced_completion_status as TaskStatus | null,
-                    });
-
-                    return taskStatus === statusFilter;
-                  })
+  return taskStatus === statusFilter;
+})
                   .sort((a, b) => {
                     // First sort by room name
                     const roomCompare = a.roomname.localeCompare(b.roomname);

@@ -19,10 +19,10 @@ export interface StatusThresholds {
 
 // Default thresholds (can be customized)
 const DEFAULT_THRESHOLDS: StatusThresholds = {
-  complete: 75,      // 0% - just completed
-  soon: 90,         // <= 50% of frequency elapsed
-  due: 95,      // <= 80% of frequency elapsed
-  overdue: 110,     // <= 100% of frequency elapsed
+  complete: 75,
+  soon: 90,
+  due: 95,
+  overdue: 110, 
 };
 
 export interface TaskData {
@@ -51,6 +51,10 @@ export function calculateTaskStatus(
   frequency: number,
   thresholds: StatusThresholds = DEFAULT_THRESHOLDS
 ): TaskStatus {
+    const effectiveThresholds = frequency > 60
+    ? { ...thresholds, complete: 85 }
+    : thresholds;
+
   const percentageElapsed = (daysSinceCompletion / frequency) * 100;
 
   // Console log the calculation
@@ -62,7 +66,7 @@ export function calculateTaskStatus(
 
   let status: TaskStatus;
 
-  if (percentageElapsed <= thresholds.complete) {
+  if (percentageElapsed <= effectiveThresholds.complete) {
     status = "complete";
   } else if (percentageElapsed <= thresholds.soon) {
     status = "soon";

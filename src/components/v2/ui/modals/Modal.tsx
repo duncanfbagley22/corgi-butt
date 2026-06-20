@@ -225,7 +225,7 @@ useEffect(() => {
 
   const handleNameChange = (value: string) => {
     // If user tries typing the 15th character → show tooltip
-    if (value.length > 14) {
+    if (value.length > 16) {
       setShowMaxTooltip(true);
       setTooltipFading(false);
       setTimeout(() => {

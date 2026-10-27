@@ -16,9 +16,9 @@ import CardText from "@/components/v2/ui/cards/CardText";
 import FloatingActionButton from "@/components/v2/ui/buttons/FloatingActionButton";
 import ProfileSidebar from "@/components/v2/ui/modals/ProfileSideBar";
 import Modal from "@/components/v2/ui/modals/Modal";
-import Floorplan2 from "@/components/v2/other/Floorplan2";
+import Floorplan from "@/components/v2/other/Floorplan";
 import { getRoomStatusFromAreas, type RoomStatus } from "@/utils/roomstatus";
-import RoomGrid2 from "@/components/v2/other/RoomGrid2";
+import RoomGrid from "@/components/v2/other/RoomGrid";
 
 import {
   SquarePen,
@@ -74,7 +74,7 @@ export default function DashboardPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        router.push("/login2");
+        router.push("/login");
         return;
       }
       const userId = session.user.id;
@@ -208,7 +208,7 @@ export default function DashboardPage() {
       }
     } else {
       // Navigate to the room's page
-      router.push(`/dashboard2/${roomId}`);
+      router.push(`/dashboard/${roomId}`);
     }
   };
 
@@ -474,13 +474,13 @@ export default function DashboardPage() {
 
             {/* Conditionally render based on view */}
             {isGridView ? (
-              <Floorplan2
+              <Floorplan
                 gridSize={20}
                 width={800}
                 height={600}
                 backgroundColor="#3E74A3"
               >
-                <RoomGrid2
+                <RoomGrid
                   rooms={rooms}
                   onUpdate={handleUpdate}
                   onDelete={handleDeleteRoom}
@@ -488,7 +488,7 @@ export default function DashboardPage() {
                   gridSize={10}
                   editMode={isEditMode}
                 />
-              </Floorplan2>
+              </Floorplan>
             ) : (
               <div className="w-full max-w-4xl p-4">
                 {/* List View - Now properly mapped */}

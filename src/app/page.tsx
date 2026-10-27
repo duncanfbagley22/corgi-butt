@@ -19,7 +19,7 @@ export default function HomePage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user)  {
-        router.push('/dashboard2')
+        router.push('/dashboard')
       }
       setLoading(false)
     })
@@ -56,7 +56,7 @@ export default function HomePage() {
             className="mt-6 px-10"
             icon={true}
             iconComponent={<ArrowRight size={24} />}
-            onClick={() => router.push('/login2')}
+            onClick={() => router.push('/login')}
             />
         </div>
       )}

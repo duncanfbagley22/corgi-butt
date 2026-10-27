@@ -48,7 +48,7 @@ export default function SignupPage() {
     } else {
       setSuccess('Account created successfully! Redirecting to login...')
       setTimeout(() => {
-        router.push('/login2')
+        router.push('/login')
       }, 2500)
     }
   }
@@ -140,7 +140,7 @@ export default function SignupPage() {
                 type="button"
                 color={theme.colors.accent}
                 className="mt-4 w-full sm:w-auto px-12 mx-auto"
-                onClick={() => router.push('/login2')}
+                onClick={() => router.push('/login')}
               />
 
               {error && (

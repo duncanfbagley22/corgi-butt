@@ -1,10 +1,10 @@
 'use client'
 
 import { useRef } from 'react'
-import Room from '@/components/v2/other/Room2'
+import Room from '@/components/v2/other/Room'
 import { RoomData } from '@/types/floorplan'
 
-interface RoomGrid2Props {
+interface RoomGridProps {
   rooms: RoomData[]
   onUpdate: (id: string, left: number, top: number, width: number, height: number) => void
   onDelete: (id: string) => void
@@ -13,7 +13,7 @@ interface RoomGrid2Props {
   editMode: boolean
 }
 
-export default function RoomGrid2({ rooms, onUpdate, onDelete, onClick, gridSize, editMode }: RoomGrid2Props) {
+export default function RoomGrid({ rooms, onUpdate, onDelete, onClick, gridSize, editMode }: RoomGridProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   return (

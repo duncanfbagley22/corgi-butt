@@ -1,0 +1,13 @@
+# Project Refactoring & Upgrade Rules
+
+## Review & Audit Phase
+- Always analyze code dependencies and usages before suggesting removals.
+- Highlight unused exports, dead code, and redundant packages.
+
+## Trimming Rules
+- Do not remove code without explicit approval in Plan Mode first.
+- Keep structural commits atomic: separate code trimming/deletion from upgrading/refactoring.
+
+## Upgrade Standards
+- Verify breaking changes for dependency upgrades before editing package configs.
+- Run type checks or linter checks (`npm run check` or `tsc --noEmit`) after every major file change.

@@ -38,7 +38,7 @@ export default function LoginPage() {
       setError(error.message);
     } else {
       // Keep loading state true during navigation
-      router.push("/dashboard2");
+      router.push("/dashboard");
       // Don't set loading to false - let the next page take over
     }
   };

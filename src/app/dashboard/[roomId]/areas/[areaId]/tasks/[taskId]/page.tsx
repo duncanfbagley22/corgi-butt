@@ -97,7 +97,7 @@ export default function TaskDetailPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        router.push("/login2");
+        router.push("/login");
         return;
       }
       const userId = session.user.id;
@@ -373,7 +373,7 @@ export default function TaskDetailPage() {
               color={theme.colors.secondary}
               size={44}
               onClick={() =>
-                router.push(`/dashboard2/${roomId}/areas/${areaId}`)
+                router.push(`/dashboard/${roomId}/areas/${areaId}`)
               }
             />,
           ]}
@@ -382,7 +382,7 @@ export default function TaskDetailPage() {
               key="dashboard"
               icon={<House size={24} color="white" />}
               color={theme.colors.accent}
-              onClick={() => router.push("/dashboard2")}
+              onClick={() => router.push("/dashboard")}
             />,
             ,
             <IconButton

@@ -110,7 +110,7 @@ export default function AreaPage() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        router.push("/login2");
+        router.push("/login");
         return;
       }
 
@@ -296,7 +296,7 @@ export default function AreaPage() {
         setIsEditOpen(true);
       }
     } else {
-      router.push(`/dashboard2/${roomId}/areas/${areaId}/tasks/${taskId}`);
+      router.push(`/dashboard/${roomId}/areas/${areaId}/tasks/${taskId}`);
     }
   };
 
@@ -635,7 +635,7 @@ export default function AreaPage() {
               key="back"
               color={theme.colors.secondary}
               size={44}
-              onClick={() => router.push(`/dashboard2/${roomId}`)}
+              onClick={() => router.push(`/dashboard/${roomId}`)}
             />,
           ]}
           rightButtons={[
@@ -643,7 +643,7 @@ export default function AreaPage() {
               key="dashboard"
               icon={<House size={24} color="white" />}
               color={theme.colors.accent}
-              onClick={() => router.push("/dashboard2")}
+              onClick={() => router.push("/dashboard")}
             />,
             <IconButton
               key="profile"

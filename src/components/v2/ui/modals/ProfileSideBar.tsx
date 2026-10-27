@@ -214,7 +214,7 @@ export default function ProfileSidebar({
     }
 
     onClose();
-    router.push("/login2");
+    router.push("/login");
   };
 
   // Prevent body scroll when modal is open

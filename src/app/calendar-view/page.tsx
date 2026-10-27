@@ -105,7 +105,7 @@ export default function DashboardPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        router.push("/login2");
+        router.push("/login");
         return;
       }
       setIsAuthenticated(true);
@@ -308,7 +308,7 @@ export default function DashboardPage() {
               key="dashboard"
               icon={<LayoutDashboard size={24} color="white" />}
               color={theme.colors.accent}
-              onClick={() => router.push("/dashboard2")}
+              onClick={() => router.push("/dashboard")}
             />,
             <IconButton
               key="profile"

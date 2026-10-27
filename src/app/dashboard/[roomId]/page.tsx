@@ -75,7 +75,7 @@ export default function RoomPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        router.push("/login2");
+        router.push("/login");
         return;
       }
       setIsAuthenticated(true);
@@ -164,7 +164,7 @@ useEffect(() => {
       }
     } else {
       // Navigate to area page
-      router.push(`/dashboard2/${roomId}/areas/${areaId}`);
+      router.push(`/dashboard/${roomId}/areas/${areaId}`);
     }
   };
 
@@ -295,7 +295,7 @@ useEffect(() => {
               key="back"
               color={theme.colors.secondary}
               size={44}
-              onClick={() => router.push("/dashboard2")}
+              onClick={() => router.push("/dashboard")}
             />,
           ]}
           rightButtons={[
@@ -303,7 +303,7 @@ useEffect(() => {
               key="dashboard"
               icon={<House size={24} color="white" />}
               color={theme.colors.accent}
-              onClick={() => router.push("/dashboard2")}
+              onClick={() => router.push("/dashboard")}
             />,
             <IconButton
               key="profile"
